@@ -2,6 +2,7 @@
 #   skills\shared\*          -> %USERPROFILE%\.claude\skills\<name>   (directory junctions, no admin needed)
 #   project-skills.txt       -> %USERPROFILE%\.claude\skills\<name>   (junctions to project skills)
 #   rules\CLAUDE.global.md   -> %USERPROFILE%\.claude\CLAUDE.md       (copy: file links need admin; re-run after git pull)
+#   skills\shared\*          -> %USERPROFILE%\.gemini\config\skills\<name> (Antigravity; only if %USERPROFILE%\.gemini exists)
 # Existing non-link items are moved to %USERPROFILE%\.claude\_backup-<date>\.
 # Run:  powershell -ExecutionPolicy Bypass -File install.ps1   (safe to re-run)
 $ErrorActionPreference = "Stop"
@@ -37,4 +38,11 @@ if ((Test-Path $rules) -and -not (Get-Item $rules -Force).LinkType) {
 }
 Copy-Item (Join-Path $Here "rules\CLAUDE.global.md") $rules -Force
 Write-Host "  CLAUDE.md copied (re-run install.ps1 after git pull)"
+$Gemini = Join-Path $env:USERPROFILE ".gemini"
+if (Test-Path $Gemini) {
+  Write-Host "Antigravity (shared skills):"
+  $GDest = Join-Path $Gemini "config\skills"
+  New-Item -ItemType Directory -Force -Path $GDest | Out-Null
+  Get-ChildItem (Join-Path $Here "skills\shared") -Directory | ForEach-Object { Link-Dir $_.FullName (Join-Path $GDest $_.Name) }
+}
 Write-Host "Done."

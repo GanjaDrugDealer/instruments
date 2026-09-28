@@ -3,6 +3,7 @@
 #   skills/shared/*            → ~/.claude/skills/<имя>      (символические ссылки)
 #   project-skills.txt         → ~/.claude/skills/<имя>      (ссылки на скиллы проектов)
 #   rules/CLAUDE.global.md     → ~/.claude/CLAUDE.md         (ссылка)
+#   skills/shared/*            → ~/.gemini/config/skills/<имя> (Antigravity; только если ~/.gemini есть)
 # Что уже лежит на месте не ссылкой — переносится в ~/.claude/_backup-<дата>/.
 # Запуск: zsh install.sh   (повторный запуск безопасен)
 set -e
@@ -29,4 +30,9 @@ grep -v '^\s*#' "$HERE/project-skills.txt" | grep -v '^\s*$' | while read -r rel
 done
 echo "Правила:"
 link "$HERE/rules/CLAUDE.global.md" "$HOME/.claude/CLAUDE.md"
+if [[ -d $HOME/.gemini ]]; then
+  echo "Antigravity (общие скиллы):"
+  mkdir -p "$HOME/.gemini/config/skills"
+  for d in "$HERE"/skills/shared/*(/); do link "$d" "$HOME/.gemini/config/skills/${d:t}"; done
+fi
 echo "Готово."
