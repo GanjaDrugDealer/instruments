@@ -4,7 +4,8 @@
 # СДАЧА <файл>        — новый или изменённый отчёт исполнителя (главный сигнал: пора принимать)
 # В РАБОТЕ <файлы>    — изменился набор незакоммиченных файлов (исполнитель что-то правит)
 # КОММИТ <hash> <msg> — новый коммит (свой или чужой — разобрать)
-# Интервал — WATCH_INTERVAL (сек, по умолчанию 10). Сам не выходит: остановка снаружи.
+# По умолчанию — только СДАЧА (экономия токенов, 2026-09-28: каждое событие = ход сессии архитектора);
+# WATCH_WIP=1 — ещё В РАБОТЕ и КОММИТ. Интервал — WATCH_INTERVAL (сек, по умолчанию 10). Сам не выходит.
 
 cd "$1" 2>/dev/null || { echo "ОШИБКА: нет папки $1"; exit 1; }
 rep=${2:-docs/tasks/reports}
@@ -13,7 +14,7 @@ mkdir -p "$rep"
 
 snap() { find "$rep" -type f ! -name '.gitkeep' -exec stat -f '%N	%m' {} + 2>/dev/null | sort; }
 wip()  { git status --porcelain -uall 2>/dev/null | grep -v " $rep/" | awk '{print $2}' | sort | tr '\n' ' '; }
-isgit=0; git rev-parse --is-inside-work-tree >/dev/null 2>&1 && isgit=1
+isgit=0; [[ $WATCH_WIP == 1 ]] && git rev-parse --is-inside-work-tree >/dev/null 2>&1 && isgit=1
 head=""; (( isgit )) && head=$(git rev-parse HEAD 2>/dev/null)
 prev=$(snap); pw=""; (( isgit )) && pw=$(wip)
 echo "СЛЕЖУ ЗА ИСПОЛНИТЕЛЯМИ: ${PWD:t} → отчёты в $rep$( (( isgit )) && echo ' + рабочие файлы + коммиты'), каждые ${iv} с"
