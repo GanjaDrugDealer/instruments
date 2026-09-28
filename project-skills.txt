@@ -1,0 +1,3 @@
+# Скиллы проектов, которые нужны и вне папки проекта (исполнителям в соседних сессиях).
+# Путь — от папки «AI Projects». Установщик ставит ссылку в ~/.claude/skills/<имя>.
+Claude/youtube-shorts-cs/.claude/skills/template-montage

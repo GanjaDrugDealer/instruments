@@ -1,0 +1,24 @@
+# Общие правила для всех проектов
+
+## Ссылки на файлы — ГЛАВНОЕ
+
+В ответах пользователю ссылки на файлы давать **только с полным абсолютным путём**,
+пробелы кодировать как `%20`:
+
+- Mac: `[STATE.md](/Users/artemganza/Desktop/AI%20Projects/Claude/youtube-shorts-cs/STATE.md)`
+- Windows: `[STATE.md](file:///C:/AI%20Projects/Claude/youtube-shorts-cs/STATE.md)` — прямые слэши (формат проверить при первом запуске на Windows)
+
+Относительные ссылки (`STATE.md`, `docs/…`) приложение ищет от папки, где запущена
+сессия, а не от папки проекта → «couldn't find this file». Так было 2026-09-25.
+
+Дубли: скилл `file-links` (`_Instruments/skills/shared/file-links/SKILL.md`, для всех агентов) и раздел «Главное правило» в `AGENTS.md` каждого проекта.
+
+## Инструменты
+
+- Mac пользователя — Intel i9: **Homebrew не использовать** (скилл `mac-standalone-tools`). Инструменты — официальные
+  сборки со сверкой контрольной суммы в `bin/` проекта или `_Instruments/bin/`. Перед установкой — спросить.
+
+## Где живут общие правила и скиллы
+
+Этот файл — копия `_Instruments/rules/CLAUDE.global.md` (закрытый репозиторий `ai-instruments`).
+Править там, затем `install.sh` (Mac) / `install.ps1` (Windows) раскладывает его и скиллы по местам.
