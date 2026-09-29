@@ -7,7 +7,7 @@
 ```
 AI Projects/
 ├── _Instruments/            ← этот репозиторий
-│   ├── skills/shared/       общие скиллы (file-links, watch-tasks, watch-executors, video-frame-sheets, …)
+│   ├── skills/shared/       общие скиллы (file-links, watch-tasks, watch-executors, video-frame-sheets, channel-banner, …)
 │   ├── rules/CLAUDE.global.md   глобальные правила (→ ~/.claude/CLAUDE.md)
 │   ├── project-skills.txt   скиллы проектов, нужные и вне их папок
 │   ├── install.sh / install.ps1
