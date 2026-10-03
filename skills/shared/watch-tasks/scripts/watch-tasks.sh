@@ -18,6 +18,20 @@ isgit=0; [[ $WATCH_COMMITS == 1 ]] && git rev-parse --is-inside-work-tree >/dev/
 head=""; (( isgit )) && head=$(git rev-parse HEAD 2>/dev/null)
 prev=$(snap)
 echo "СЛЕЖУ: ${PWD:t} → ${paths[*]}${WATCH_MATCH:+ (только $WATCH_MATCH)}$( (( isgit )) && echo ' + коммиты'), каждые ${iv} с"
+# Выдано, пока слежение было выключено (после /clear, после остановки за 2 ч тишины), — 2026-10-03:
+# задача из docs/tasks (своя по WATCH_MATCH), у которой нет отчёта и на доске не «принято», — ЗАДАЧА ЖДЁТ.
+board=${WATCH_BOARD:-docs/tasks/README.md}
+if [[ -f $board ]]; then
+  for f in docs/tasks/*.md(N); do
+    [[ ${f:t} == README.md ]] && continue
+    [[ -n $WATCH_MATCH ]] && ! print -r -- "$f" | grep -qE -- "$WATCH_MATCH" && continue
+    id=${${f:t}#*_}; id=${id%%_*}; id=${id%.md}
+    row=$(grep -m1 "^| $id |" "$board")
+    [[ -z $row || $row == *принято* ]] && continue
+    [[ -n $(print -l docs/tasks/reports/*_${id}_report.md(N)) ]] && continue
+    echo "ЗАДАЧА ЖДЁТ $f"
+  done
+fi
 
 while true; do
   sleep $iv
