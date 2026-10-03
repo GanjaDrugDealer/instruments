@@ -5,16 +5,16 @@
 соседними кадрами. Берём N самых сильных пиков, разнесённых во времени,
 и сдвигаем каждый чуть вперёд — к моменту, когда жест уже зафиксирован.
 
-Запуск (из корня проекта): python3 <скилл>/scripts/motion-peaks.py <ролик> [N] [срез_конца_сек]
+Запуск (из корня проекта; Windows: py): python3 <скилл>/scripts/motion-peaks.py <ролик> [N] [срез_конца_сек]
 Печатает времена (сек) через пробел, по возрастанию.
 """
 import os, re, subprocess, sys
 
 import shutil
 
-# ffmpeg: $FFMPEG → ./bin/ffmpeg (корень проекта) → PATH
+# ffmpeg: $FFMPEG → ./bin/ffmpeg(.exe) (корень проекта) → PATH
 FF = (os.environ.get("FFMPEG")
-      or (os.path.abspath("bin/ffmpeg") if os.path.isfile("bin/ffmpeg") else None)
+      or next((os.path.abspath(p) for p in ("bin/ffmpeg.exe", "bin/ffmpeg") if os.path.isfile(p)), None)
       or shutil.which("ffmpeg") or "ffmpeg")
 
 FPS = 4          # частота анализа движения
@@ -27,7 +27,7 @@ def scores(path):
         [FF, "-v", "error", "-i", path, "-an", "-vf",
          f"fps={FPS},scale=160:-2,select='gte(scene,0)',metadata=print:file=-",
          "-f", "null", "-"],
-        capture_output=True, text=True).stdout
+        capture_output=True, text=True, encoding="utf-8", errors="replace").stdout
     t, res = None, []
     for line in out.splitlines():
         m = re.search(r"pts_time:([\d.]+)", line)
