@@ -7,12 +7,34 @@ description: Пакетная уникализация папки видео с�
 
 Скрипт лежит в `scripts/` этого скилла: `scripts/2026-09-22_uniquifier-mac.command`
 (дальше `<скилл>` — папка этого скилла, в проекте обычно `.claude/skills/uniquify-batch`).
-Только macOS, нужен zsh. ffmpeg/ffprobe скачиваются сами при первом запуске
+Этот скрипт — только macOS, нужен zsh (Windows — раздел «Windows» ниже). ffmpeg/ffprobe скачиваются сами при первом запуске
 в `~/.uniquifier/bin`. Запускается headless — без диалогов, всё флагами.
 
 Источник скилла — общая библиотека
 `~/Desktop/AI Projects/_Instruments/skills/shared/uniquify-batch`.
 Править там, в проекты копировать папку целиком (без симлинков).
+
+## Windows (с 2026-10-04)
+
+Те же флаги и те же функции, другой скрипт: `scripts/2026-10-04_uniquifier-win.py` (Python, ffmpeg из PATH,
+`FFMPEG_DIR` или соседнего `download-script\bin`; ничего не качает). Для двойного клика (диалоги) —
+`scripts/2026-10-04_uniquifier-win.bat`. Кодировщик: `h264_nvenc` на видеокарте NVIDIA (RTX 5080), иначе
+`libx264`; принудительно — `--encoder=nvenc|x264`. `--jobs=N` — несколько роликов одновременно (по умолчанию 1:
+порядок вывода как на маке). В выходе нет подписи кодировщика (теги `encoder`, `Lavf`/`Lavc`, SEI x264).
+
+```
+python -X utf8 "<скилл>\scripts\2026-10-04_uniquifier-win.py" --keep-name --skip=scale,flip -o "<папка>\Unique" "<папка>\Source\a.mp4" ...
+```
+
+- Файлы перечисляются явно (в PowerShell/cmd нет `Source/*.MOV` как в zsh): `Get-ChildItem Source\* -Include *.mp4,*.mov`
+  и подставить пути, либо дать скрипту список аргументами из `python`-однострочника в файле.
+- Запускать в фоне (`run_in_background`), ждать уведомления. Статус: число файлов в папке выхода (последний ещё пишется);
+  дата файла случайная, `-t` по времени не годится. Остановка: остановить фоновую задачу, затем
+  `taskkill /F /IM ffmpeg.exe` и `Get-Process python | Stop-Process` (только свои); недоделанный файл — по сегодняшней дате.
+- Тесты после правки: `python -X utf8 "<скилл>\scripts\2026-10-04_uniquifier-tests.py"` (≈20 сек, код 0 = всё прошло;
+  19 проверок, в том числе обе версии кодировщика и отсутствие подписи).
+- На Windows `render.py` youtube-shorts-cs зовёт этот же скрипт с `--only=color,noise,speed --keep-name`.
+- Дальше в этом файле команды для мака (`zsh ...command`, `pkill`, `ls | wc -l`); на Windows их заменяют строки выше.
 
 ## 1. Перевести слова пользователя во флаги
 
