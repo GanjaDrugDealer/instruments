@@ -6,7 +6,7 @@
 пробелы кодировать как `%20`:
 
 - Mac: `[STATE.md](/Users/artemganza/Desktop/AI%20Projects/Claude/youtube-shorts-cs/STATE.md)`
-- Windows: `[STATE.md](file:///C:/AI%20Projects/Claude/youtube-shorts-cs/STATE.md)` — прямые слэши (формат проверить при первом запуске на Windows)
+- Windows: `[STATE.md](file:///C:/AI%20Projects/Claude/youtube-shorts-cs/STATE.md)` — схема `file:///`, диск `C:/`, прямые слэши, пробелы `%20`, кириллицу оставлять как есть (не кодировать)
 
 Относительные ссылки (`STATE.md`, `docs/…`) приложение ищет от папки, где запущена
 сессия, а не от папки проекта → «couldn't find this file». Так было 2026-09-25.

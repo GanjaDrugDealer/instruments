@@ -10,7 +10,7 @@ description: ГЛАВНОЕ правило для всех проектов и �
 | Где | Как |
 |---|---|
 | Mac | `[STATE.md](/Users/artemganza/Desktop/AI%20Projects/Claude/youtube-shorts-cs/STATE.md)` |
-| Windows | `[STATE.md](file:///C:/AI%20Projects/<проект>/STATE.md)` — прямые слэши |
+| Windows | `[STATE.md](file:///C:/AI%20Projects/<проект>/STATE.md)` — схема `file:///`, диск `C:/`, прямые слэши, пробелы `%20`, кириллица как есть: `[план](file:///C:/AI%20Projects/Claude/Контент/план.md)` |
 
 Нельзя: `[STATE.md](STATE.md)`, `docs/…`, `./…`, `~/…`.
 
