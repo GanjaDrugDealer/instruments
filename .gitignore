@@ -4,3 +4,4 @@ bin/
 Thumbs.db
 desktop.ini
 scripts/check-structure.log
+__pycache__/
