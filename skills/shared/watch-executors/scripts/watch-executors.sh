@@ -19,6 +19,16 @@ head=""; (( isgit )) && head=$(git rev-parse HEAD 2>/dev/null)
 prev=$(snap); pw=""; (( isgit )) && pw=$(wip)
 echo "СЛЕЖУ ЗА ИСПОЛНИТЕЛЯМИ: ${PWD:t} → отчёты в $rep$( (( isgit )) && echo ' + рабочие файлы + коммиты'), каждые ${iv} с"
 [[ -n $pw ]] && echo "В РАБОТЕ (на старте) $pw"
+# Сдано до старта или в окне между перезапусками (2026-10-03: CM12 сдан за минуты до включения слежения и не замечен):
+# отчёт, чья задача есть на доске и ещё не «принято», — тоже СДАЧА.
+board=${WATCH_BOARD:-docs/tasks/README.md}
+if [[ -f $board ]]; then
+  for f in $rep/*_report.md(N); do
+    id=${${f:t}#*_}; id=${id%_report.md}
+    row=$(grep -m1 "^| $id |" "$board")
+    [[ -n $row && $row != *принято* ]] && echo "СДАЧА (до старта) $f"
+  done
+fi
 
 while true; do
   sleep $iv
