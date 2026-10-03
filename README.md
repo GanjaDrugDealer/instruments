@@ -32,3 +32,12 @@ AI Projects/
   (если нужен и вне проекта — строка в `project-skills.txt`).
 - В файлах проектов общие скиллы называть по имени (`file-links`, `watch-tasks`), без абсолютных путей.
 - Правки глобальных правил — в `rules/CLAUDE.global.md`, не в `~/.claude/CLAUDE.md`.
+
+## Стандарт хранения проектов (Windows-контур, 2026-09-15)
+
+- Правило — скилл `skills/shared/project-structure`; шаблон проекта — `templates/project/`, новый проект —
+  `new-project.bat <Claude|Antigravity> <имя>` в корне AI Projects (`scripts/new-project.ps1`).
+- Скиллы по применимости: `skills/shared/` (все агенты), `skills/claude/` (только Claude), `skills/antigravity/`.
+  `install.ps1` раздаёт `shared` и `claude`.
+- Утилиты: `scripts/check-structure.py` (линтер, ничего не меняет), `scripts/snapdiff.py` (дифф для приёмки без git).
+- `_archive/` — отключённое старое.

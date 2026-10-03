@@ -1,5 +1,5 @@
 ﻿# Lays out shared Claude skills and rules on this Windows machine:
-#   skills\shared\*          -> %USERPROFILE%\.claude\skills\<name>   (directory junctions, no admin needed)
+#   skills\shared\*, skills\claude\* -> %USERPROFILE%\.claude\skills\<name>   (directory junctions, no admin needed)
 #   project-skills.txt       -> %USERPROFILE%\.claude\skills\<name>   (junctions to project skills)
 #   rules\CLAUDE.global.md   -> %USERPROFILE%\.claude\CLAUDE.md       (copy: file links need admin; re-run after git pull)
 #   skills\shared\*          -> %USERPROFILE%\.gemini\config\skills\<name> (Antigravity; only if %USERPROFILE%\.gemini exists)
@@ -26,6 +26,8 @@ function Link-Dir($src, $dst) {
 
 Write-Host "Shared skills:"
 Get-ChildItem (Join-Path $Here "skills\shared") -Directory | ForEach-Object { Link-Dir $_.FullName (Join-Path $Dest $_.Name) }
+Write-Host "Claude-only skills:"
+Get-ChildItem (Join-Path $Here "skills\claude") -Directory | ForEach-Object { Link-Dir $_.FullName (Join-Path $Dest $_.Name) }
 Write-Host "Project skills:"
 Get-Content -Encoding UTF8 (Join-Path $Here "project-skills.txt") | Where-Object { $_ -and -not $_.TrimStart().StartsWith("#") } | ForEach-Object {
   $src = Join-Path $AI ($_.Trim() -replace "/", "\")

@@ -3,3 +3,4 @@ bin/
 ._*
 Thumbs.db
 desktop.ini
+scripts/check-structure.log
