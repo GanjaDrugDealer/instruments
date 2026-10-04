@@ -52,3 +52,16 @@ Git: автор во всех коммитах — ты (как в истори�
 - `Claude/youtube-shorts-cs/docs/tasks/reports/2026-10-04_T17_night.md`, `.../2026-10-04_T27_report.md`
 - `Claude/<проект>/docs/2026-10-04_windows-port.md` — download-script, mac-local, content-manager, cut-and-render,
   reaction-tagger, api_automation_youtube, hh-ru-automation, photo-pic
+
+## День 04.10 — продолжение
+
+- **GitHub:** вход `GanjaDrugDealer`, git берёт учётку из gh — push работает; ветки `t17-windows` влиты в `main` везде.
+- **T27, демки CS2:** 4 матча EPL S24 (10 карт) → 88 моментов; детектор поправлен по сверке с хайлайтами Allstar (длинная
+  серия склеивается из кусков вокруг киллов, серия = все киллы игрока в раунде) — все 3 трендовых момента найдены.
+  Поставлены CS2, CS Demo Manager 3.20.1, PostgreSQL 17 (служба, `psql` в PATH). Рендер клипов — в следующей сессии
+  (`Claude/youtube-shorts-cs/STATE.md`, «Следующий шаг»).
+- **youtube-shorts-cs:** превью роликов с авто-кадром по эмоции (OpenCV + YuNet + FER+ локально); `match.py` не берёт
+  вебку во весь кадр; реклама внутри игры размывается (`ad_mode=blur`), а не вырезается; выкладка 04.10 проведена по
+  отметкам навигатора; страница навигатора на claude.ai — версия 35.
+- **Осталось за владельцем:** память Claude с мака (флешка); отметка «залил» для 04.10 ch4 «Гайд по тимплею»;
+  решение по Google Диску; медиа на флешке J: с ошибками ФС.
