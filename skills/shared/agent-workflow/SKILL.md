@@ -55,16 +55,24 @@ Claude пишет ТЗ  →  Antigravity исполняет  →  Claude при�
 Git для приёмки не обязателен — во многих проектах его нет и не будет.
 Универсальный способ одинаков для всех проектов:
 
+```bash
+# Mac. Тот, кто выдаёт ТЗ, — ДО выдачи
+python3 -X utf8 ~/Desktop/"AI Projects"/_Instruments/scripts/snapdiff.py snap "<папка проекта>"
+# исполнитель при сдаче и принимающий при приёмке
+python3 -X utf8 ~/Desktop/"AI Projects"/_Instruments/scripts/snapdiff.py diff "<папка проекта>"
+```
+
 ```cmd
-:: тот, кто выдаёт ТЗ, — ДО выдачи
+:: Windows. Тот, кто выдаёт ТЗ, — ДО выдачи
 python -X utf8 "C:\AI Projects\_Instruments\scripts\snapdiff.py" snap "<папка проекта>"
 
 :: исполнитель при сдаче и принимающий при приёмке
 python -X utf8 "C:\AI Projects\_Instruments\scripts\snapdiff.py" diff "<папка проекта>"
 ```
 
-- Снимок ложится в `%LOCALAPPDATA%\agent-snapshots\<проект>\<дата_время>`,
-  вне проекта. `diff` сравнивает с последним снимком, код выхода 1 — есть изменения.
+- Снимок ложится вне проекта: Windows — `%LOCALAPPDATA%\agent-snapshots\<проект>\<дата_время>`,
+  Mac — `~/Library/Caches/agent-snapshots/<проект>/<дата_время>`.
+  `diff` сравнивает с последним снимком, код выхода 1 — есть изменения.
 - Пропускаются junction и симлинки (данные на другом томе не копируются),
   `.git`, `.venv`, `node_modules`, `__pycache__`, `secrets.json`, `.env`,
   файлы больше 5 МБ.

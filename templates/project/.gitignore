@@ -1,0 +1,15 @@
+.env
+secrets.json
+credentials.json
+.venv/
+data/
+out/
+bin/
+__pycache__/
+*.pyc
+node_modules/
+*.log
+.DS_Store
+._*
+Thumbs.db
+desktop.ini

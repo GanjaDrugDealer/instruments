@@ -3,12 +3,13 @@
 Линтер структуры проектов. НИЧЕГО НЕ МЕНЯЕТ — только показывает расхождения
 со стандартом (скилл project-structure). Решение всегда за человеком.
 
-Запуск:  python -X utf8 "C:\\AI Projects\\_Instruments\\scripts\\check-structure.py"
+Запуск:  Windows — python -X utf8 "C:\\AI Projects\\_Instruments\\scripts\\check-structure.py"
+         Mac     — python3 -X utf8 ~/Desktop/"AI Projects"/_Instruments/scripts/check-structure.py
 """
 import os, re
 from pathlib import Path
 
-ROOT = Path(r"C:\AI Projects")
+ROOT = Path(__file__).resolve().parents[2]   # папка «AI Projects»
 BRANCHES = ["Claude", "Antigravity"]
 MUST_FILES = ["CLAUDE.md", "AGENTS.md", "GUARDRAILS.md", ".env.example"]
 KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
@@ -24,9 +25,9 @@ BENIGN = re.compile(
     r"Яндекс\.Диск|Nextcloud|OneDrive", re.I)
 # Документы, которые описывают прошлое и должны упоминать Диск.
 HISTORICAL = {
-    r"docs\2026-09-16_work-plan.md",
-    r"docs\2026-09-09_hh-bot-actual.md",
-    r"docs\2026-09-15_hh-agent-local-vs-git.md",
+    "docs/2026-09-16_work-plan.md",
+    "docs/2026-09-09_hh-bot-actual.md",
+    "docs/2026-09-15_hh-agent-local-vs-git.md",
 }
 
 out = []
@@ -69,13 +70,13 @@ def check(prj: Path):
                      else "нет SKILL.md"))
 
     # абсолютные пути наружу
-    pat = re.compile(r"[A-Z]:\\(?!AI Projects)")
+    pat = re.compile(r"[A-Z]:\\(?!AI Projects)|/Users/[^/\s]+/(?!Desktop/AI Projects)")
     hits = []
     for dp, dn, fn in os.walk(prj):
         dn[:] = [d for d in dn if d not in SKIP]
         for f in fn:
             fp = Path(dp) / f
-            if fp.suffix.lower() not in {".md", ".py", ".bat", ".ps1", ".json"}:
+            if fp.suffix.lower() not in {".md", ".py", ".bat", ".ps1", ".json", ".sh", ".command"}:
                 continue
             try:
                 if fp.stat().st_size > 200_000:
@@ -97,7 +98,7 @@ def check(prj: Path):
             if not f.lower().endswith(".md"):
                 continue
             fp = Path(dp) / f
-            rel = str(fp.relative_to(prj))
+            rel = fp.relative_to(prj).as_posix()
             if rel in HISTORICAL:
                 continue
             try:
@@ -118,7 +119,7 @@ for branch in BRANCHES:
     b = ROOT / branch
     if not b.exists():
         continue
-    p(f"\n=== {branch}\\ ===")
+    p(f"\n=== {branch}/ ===")
     for prj in sorted(b.iterdir()):
         if not prj.is_dir():
             continue

@@ -1,6 +1,6 @@
 ---
 name: project-structure
-description: "Единое правило хранения AI-проектов в C:\\AI Projects: самодостаточная папка проекта, где лежат проекты, как называть папки и файлы, где живут скиллы, что нельзя класть в проект. Применять при создании нового проекта, при добавлении файлов в существующий и при любом вопросе «куда это положить»."
+description: "Единое правило хранения AI-проектов в папке «AI Projects» (Mac — ~/Desktop/AI Projects, Windows — C:\\AI Projects): самодостаточная папка проекта, где лежат проекты, как называть папки и файлы, где живут скиллы, что нельзя класть в проект. Применять при создании нового проекта, при добавлении файлов в существующий и при любом вопросе «куда это положить»."
 ---
 
 # Архитектура хранения проектов
@@ -29,14 +29,17 @@ Antigravity, локальная модель на Ollama — и она зара�
 ## Корни
 
 ```
-C:\AI Projects\
-├── _Instruments\     общая библиотека: skills, agents, docs, templates, scripts
-├── Claude\           проекты, которые ведёт Claude
-└── Antigravity\      проекты, которые ведёт Antigravity
+AI Projects/           Mac: ~/Desktop/AI Projects   Windows: C:\AI Projects
+├── _Instruments/      общая библиотека: skills, agents, docs, templates, scripts
+├── Claude/            проекты, которые ведёт Claude
+└── Antigravity/       проекты, которые ведёт Antigravity
 ```
 
-Всё на локальном NTFS. Google Диск больше не используется: он не NTFS,
-на нём не работают junction-ссылки и нет исключений по маске.
+Раскладка одинаковая на обеих машинах; `_Instruments` — git-репозиторий
+`ai-instruments`, синхронизация Mac ↔ Windows через `git pull`.
+Всё на локальном диске (Windows — NTFS, Mac — APFS). Google Диск больше
+не используется: он не NTFS, на нём не работают junction-ссылки и нет
+исключений по маске.
 
 ## Структура проекта
 
@@ -58,9 +61,10 @@ C:\AI Projects\
 └── out\               финальные результаты
 ```
 
-Шаблон: `_Instruments\templates\project\`.
-Новый проект: `new-project.bat <Claude|Antigravity> <имя>` в корне AI Projects.
-Ненужные папки из шаблона удалять.
+Шаблон: `_Instruments/templates/project/`.
+Новый проект — скилл `new-project`: Mac — `new-project.command` в корне
+AI Projects (или `_Instruments/scripts/new-project.sh`), Windows —
+`new-project.bat <Claude|Antigravity> <имя>`. Ненужные папки из шаблона удалять.
 
 Папка скиллов проекта ровно одна — `.claude\skills\`. Она названа так потому,
 что это единственное место, которое агент подхватывает из папки проекта сам.
@@ -126,8 +130,10 @@ _Instruments\skills\
 ```
 
 - Нужно одному проекту — `<project>\.claude\skills\`. Едет вместе с папкой.
-- Переносимое знание, нужное везде — `_Instruments\skills\shared\`,
-  раздаётся junction-ссылками в профиль пользователя:
+- Переносимое знание, нужное везде — `_Instruments/skills/shared/`,
+  раздаётся ссылками в профиль пользователя установщиком: Mac — `zsh install.sh`
+  (символические ссылки в `~/.claude/skills/` и `~/.gemini/config/skills/`),
+  Windows — `install.ps1` (junction-ссылки, как ниже). Руками на Windows:
 
 ```cmd
 mklink /J "C:\Users\<user>\.claude\skills\<имя>"        "C:\AI Projects\_Instruments\skills\shared\<имя>"
@@ -138,9 +144,10 @@ mklink /J "C:\Users\<user>\.gemini\config\skills\<имя>" "C:\AI Projects\_Inst
   тулзы Antigravity) в `shared\` НЕ класть: чужой агент прочитает и начнёт
   звать несуществующие инструменты. Им место в `claude\` или `antigravity\`.
 
-Junction — не копия и не ярлык, а запись «эта папка на самом деле вон там».
-Создаётся только на локальном NTFS; `rmdir` без `/S` снимает ссылку,
-не трогая цель.
+Junction (Windows) и символическая ссылка (Mac) — не копия и не ярлык,
+а запись «эта папка на самом деле вон там». Junction создаётся только на
+локальном NTFS; `rmdir` без `/S` снимает ссылку, не трогая цель. На маке
+ссылку снимает `rm <ссылка>` (без `-r`), цель остаётся.
 
 ## Как подключить папку проекта к агенту
 
@@ -180,14 +187,20 @@ Junction — не копия и не ярлык, а запись «эта пап
 
 Поэтому есть линтер, который **ничего не меняет**:
 
+```bash
+# Mac
+python3 -X utf8 ~/Desktop/"AI Projects"/_Instruments/scripts/check-structure.py
+```
+
 ```cmd
+:: Windows
 python -X utf8 "C:\AI Projects\_Instruments\scripts\check-structure.py"
 ```
 
 Он проверяет имена папок, обязательные файлы, отсутствие второй папки
 скиллов, глубину вложенности скиллов, закрыты ли секреты `.gitignore`,
 следы старой архитектуры (Google Диск, том `K:`) и показывает абсолютные
-пути наружу. Отчёт пишется рядом в `check-structure.log`.
+пути наружу (`C:\...` и `/Users/...` вне AI Projects). Отчёт пишется рядом в `check-structure.log`.
 Что чинить — решает человек.
 
 Историю переезда линтер не считает ошибкой: документы, которые описывают
@@ -200,7 +213,8 @@ python -X utf8 "C:\AI Projects\_Instruments\scripts\check-structure.py"
 ## Как изменения доходят до агентов
 
 - **Скилл в библиотеке** → Claude Code и Antigravity читают новую версию сами,
-  через junction, со следующего запуска. Действий не требуется.
+  через junction / симлинк, со следующего запуска. Новый скилл — запустить
+  установщик (`install.sh` / `install.ps1`), иначе ссылки на него не будет.
 - **Аккаунтная копия в Cowork** → только вручную, карточкой скилла.
 - **Шаблон проекта** → влияет только на новые проекты, старые не трогает.
 - **Существующие проекты** → сами не меняются и не должны. Хочешь применить

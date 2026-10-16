@@ -1,6 +1,6 @@
 ---
 name: new-project
-description: Создать новый проект в C:\AI Projects из шаблона одной командой (new-project.ps1). Применять по команде /new-project или просьбе «создай/заведи новый проект».
+description: Создать новый проект в «AI Projects» из шаблона одной командой (Mac — new-project.sh, Windows — new-project.ps1). Применять по команде /new-project или просьбе «создай/заведи новый проект».
 ---
 
 # Новый проект
@@ -10,8 +10,16 @@ description: Создать новый проект в C:\AI Projects из ша�
 Нет имени - спросить одним вопросом и больше ничего не делать.
 Имя: строчная латиница, цифры, дефис между словами (`logo-script`).
 
-Выполнить одну команду на Windows-машине пользователя тем способом запуска
-команд, который есть у агента. Ничего не читать заранее, скиллы не загружать:
+Выполнить одну команду на машине пользователя тем способом запуска
+команд, который есть у агента. Ничего не читать заранее, скиллы не загружать.
+
+Mac (`~/Desktop/AI Projects`):
+
+```bash
+zsh ~/Desktop/"AI Projects"/_Instruments/scripts/new-project.sh Claude <имя> --no-prompt
+```
+
+Windows (`C:\AI Projects`):
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File "C:\AI Projects\_Instruments\scripts\new-project.ps1" -Branch Claude -Name <имя> -NoPrompt
@@ -21,10 +29,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "C:\AI Projects\_Instruments
   в агенте и написать «Собираем контекст».
 - Код 2 - имя или ветка не подходят, либо папка занята и не пуста.
   Передать сообщение скрипта и спросить другое имя.
-- `-NoPrompt` обязателен: без него скрипт ждёт ввода с клавиатуры и зависнет.
+- `--no-prompt` / `-NoPrompt` обязателен: без него скрипт ждёт ввода с клавиатуры и зависнет.
 
 Шаблон, `CLAUDE.md` и `STATE.md` нового проекта не править и не заполнять:
 это задача первой сессии внутри нового проекта.
 
-Человек может создать проект и сам, без агента: `C:\AI Projects\new-project.bat`
-(двойной щелчок) или ярлык «Новый AI-проект» в меню «Пуск».
+Человек может создать проект и сам, без агента: двойной щелчок по
+`AI Projects/new-project.command` (Mac) или `C:\AI Projects\new-project.bat`
+(Windows; там же ярлык «Новый AI-проект» в меню «Пуск»).

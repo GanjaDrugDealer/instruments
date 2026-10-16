@@ -10,10 +10,22 @@ AI Projects/
 │   ├── skills/shared/       общие скиллы (file-links, watch-tasks, watch-executors, video-frame-sheets, channel-banner, …)
 │   ├── rules/CLAUDE.global.md   глобальные правила (→ ~/.claude/CLAUDE.md)
 │   ├── project-skills.txt   скиллы проектов, нужные и вне их папок
+│   ├── templates/project/   шаблон нового проекта (стандарт — скилл project-structure)
+│   ├── scripts/             new-project.sh / .ps1, snapdiff.py (приёмка по диффу), check-structure.py (линтер)
 │   ├── install.sh / install.ps1
 │   └── bin/                 личные инструменты машины (gh и т.п.), не в git
-└── Claude/<проект>/         проекты (у каждого свой репозиторий)
+├── new-project.command      Mac: двойной щелчок — новый проект (Windows: new-project.bat)
+├── Claude/<проект>/         проекты, которые ведёт Claude (у каждого свой репозиторий)
+└── Antigravity/<проект>/    проекты, которые ведёт Antigravity
 ```
+
+## Новый проект
+
+- Mac: двойной щелчок по `AI Projects/new-project.command` или
+  `zsh _Instruments/scripts/new-project.sh Claude <имя> --no-prompt`.
+- Windows: `new-project.bat` в корне `C:\AI Projects`.
+- Агенту — скилл `new-project`. Проверка всех проектов на стандарт (ничего не меняет):
+  `python3 -X utf8 _Instruments/scripts/check-structure.py`.
 
 ## Установка / обновление
 

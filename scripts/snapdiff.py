@@ -5,7 +5,8 @@
   python -X utf8 snapdiff.py diff <папка-проекта> [снимок]  дифф против снимка
                                                             (по умолчанию последний)
 
-Снимки: %LOCALAPPDATA%\\agent-snapshots\\<проект>\\ГГГГ-ММ-ДД_ЧЧММСС
+Снимки: Windows — %LOCALAPPDATA%\\agent-snapshots\\<проект>\\ГГГГ-ММ-ДД_ЧЧММСС,
+        Mac — ~/Library/Caches/agent-snapshots/<проект>/ГГГГ-ММ-ДД_ЧЧММСС
 Пропускает junction и симлинки, .git, .venv, node_modules, __pycache__,
 secrets.json, .env, файлы больше 5 МБ. Код выхода diff: 0 — изменений нет, 1 — есть.
 """
@@ -18,8 +19,8 @@ from datetime import datetime
 SKIP_DIRS = {".git", ".venv", "node_modules", "__pycache__"}
 SKIP_FILES = {"secrets.json", ".env"}
 MAX_BYTES = 5 * 1024 * 1024
-ROOT = os.path.join(os.environ.get("LOCALAPPDATA", os.path.expanduser("~")),
-                    "agent-snapshots")
+ROOT = os.path.join(os.environ.get("LOCALAPPDATA")
+                    or os.path.expanduser("~/Library/Caches"), "agent-snapshots")
 
 
 def is_link(p):
