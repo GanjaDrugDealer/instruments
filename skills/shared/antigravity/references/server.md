@@ -140,7 +140,11 @@ tmux send-keys -t agy-login Enter                   # выбрать «Google» 
   `visudo -cf`;
 - промпт, схема, образец — через stdin или копией в `/home/<agyuser>/work`: `<agyuser>` файлов проекта не видит;
 - папка состояния — `install -d -o root -g <группа> -m 2775`, журнал `journal.jsonl` 664;
-- долгие задачи (код по ТЗ) — `systemd-run --unit agy-dev-<имя> -p MemoryMax=900M -p RuntimeMaxSec=4h …`.
+- долгие задачи (код по ТЗ) — `systemd-run --unit agy-code-<проект>-<имя> -p MemoryMax=900M -p RuntimeMaxSec=4h …`
+  с обёрткой аккаунта в строке запуска: по ней помощник картинок понимает, чей это код, и на время картинки
+  замораживает его (`systemctl freeze` / `thaw`; образец — `code_units()`, `freeze()`, `thaw_stale()` в
+  smm-planner `scripts/server_images.py`). Кого заморозил — в файл с pid помощника: убит — следующий запуск
+  размораживает. Остановить замороженную службу — сначала `thaw`, потом `stop`.
 
 ## 7. Проверка
 

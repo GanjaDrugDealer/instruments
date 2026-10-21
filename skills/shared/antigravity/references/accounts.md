@@ -5,7 +5,7 @@
 
 | Аккаунт | Тариф | Где вошёл | Выход | Чем занят |
 |---|---|---|---|---|
-| ganjauzbek@gmail.com | AI Pro | Netcup, пользователь `smmimage2`, запуск `/usr/local/bin/agy-nl2` (свои machine-id и имя хоста) | 195.2.92.96 (`nl-tunnel2`, SOCKS 1092) | **smm-завод:** картинки к постам (первым), фактчек, теневой автор, код по ТЗ (`agy-dev`) |
+| ganjauzbek@gmail.com | AI Pro | Netcup, пользователь `smmimage2`, запуск `/usr/local/bin/agy-nl2` (свои machine-id и имя хоста) | 195.2.92.96 (`nl-tunnel2`, SOCKS 1092) | **smm-завод:** картинки к постам (первым), фактчек, теневой автор, код по ТЗ (`agy-dev`; с 21.10 — и на ganjadrugdealer, `--account 1`) |
 | ganjadrugdealer@gmail.com | AI Pro (с 21.10) | Netcup, пользователь `smmimage`, запуск `/usr/local/bin/agy-nl`; ПК пользователя — приложение Antigravity и консоль через VPN Нидерланды | 77.246.106.173 (`nl-tunnel`, SOCKS 1091; тот же адрес у VPN NL на ПК) | smm: запас картинок при 429 у ganjauzbek. **Свободен для других проектов** |
 
 ganjacsdealer — выведен 21.10 (Antigravity видел его как Starter), его вход не поднимать.
