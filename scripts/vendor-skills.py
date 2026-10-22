@@ -7,6 +7,7 @@
 Нужен только git. Качается лишь папка скилла (sparse + blob:none), символические ссылки
 разворачиваются в файлы (для Windows). Если в папке скилла нет лицензии, рядом кладётся
 LICENSE-UPSTREAM из корня репозитория. Папки в skills/vendor/, которых нет в списке, удаляются.
+Пометка manual дописывает в SKILL.md `disable-model-invocation: true` (вызов только командой /имя).
 """
 import fnmatch, re, shutil, subprocess, sys, tempfile
 from pathlib import Path
@@ -28,10 +29,12 @@ def parse():
         if not line.strip() or line.lstrip().startswith("#"):
             continue
         f = line.split()
-        if len(f) not in (5, 6) or f[0] not in AGENTS or (len(f) == 6 and not f[5].startswith("exclude=")):
-            sys.exit(f"vendor-skills.txt:{n}: ожидается <агенты> <имя> <репо> <коммит> <путь> [exclude=…]")
-        excl = f[5][len("exclude="):].split(",") if len(f) == 6 else []
-        entries.append(dict(n=n, agent=f[0], name=f[1], repo=f[2], sha=f[3], path=f[4].strip("/"), excl=excl))
+        opts = f[5:]
+        if len(f) < 5 or f[0] not in AGENTS or any(o != "manual" and not o.startswith("exclude=") for o in opts):
+            sys.exit(f"vendor-skills.txt:{n}: ожидается <агенты> <имя> <репо> <коммит> <путь> [exclude=…] [manual]")
+        excl = [p for o in opts if o.startswith("exclude=") for p in o[len("exclude="):].split(",")]
+        entries.append(dict(n=n, agent=f[0], name=f[1], repo=f[2], sha=f[3], path=f[4].strip("/"), excl=excl,
+                            manual="manual" in opts))
     names = [e["name"] for e in entries]
     dup = {x for x in names if names.count(x) > 1}
     if dup:
@@ -50,6 +53,18 @@ def fetch(repo, ref, paths, tmp):
     return d, git("rev-parse", "HEAD", cwd=d)
 
 
+def set_manual(md):
+    """disable-model-invocation: true — описание не грузится в контекст, вызов только командой /имя."""
+    text = md.read_bytes().decode("utf-8")
+    nl = "\r\n" if "\r\n" in text else "\n"
+    head, sep, body = text.partition(nl + "---")
+    if not text.startswith("---") or not sep:
+        sys.exit(f"{md}: нет frontmatter")
+    # user-invocable: false вместе с ним закрыл бы скилл совсем
+    head = re.sub(r"(?m)^(disable-model-invocation|user-invocable):.*(\r?\n|$)", "", head).rstrip("\r\n")
+    md.write_bytes((head + nl + "disable-model-invocation: true" + sep + body).encode("utf-8"))
+
+
 def place(src_root, e):
     src = src_root / e["path"]
     if not (src / "SKILL.md").is_file():
@@ -60,6 +75,8 @@ def place(src_root, e):
     ignore = lambda d, names: [x for x in names if x == ".git" or any(
         fnmatch.fnmatch(str((Path(d) / x).relative_to(src)).replace("\\", "/"), p) for p in e["excl"])]
     shutil.copytree(src, dst, ignore=ignore)  # symlinks=False: ссылки копируются содержимым
+    if e["manual"]:
+        set_manual(dst / "SKILL.md")
     if not any(p.name.upper().startswith(("LICENSE", "LICENCE")) for p in dst.iterdir()):
         lic = next((p for p in sorted(src_root.iterdir()) if p.is_file() and p.name.upper().startswith(("LICENSE", "LICENCE"))), None)
         if lic:
