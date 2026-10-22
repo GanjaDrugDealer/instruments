@@ -4,7 +4,8 @@
 #   skills/vendor/{shared,claude}/* → ~/.claude/skills/<имя> (сторонние, vendor-skills.txt)
 #   project-skills.txt         → ~/.claude/skills/<имя>      (ссылки на скиллы проектов)
 #   rules/CLAUDE.global.md     → ~/.claude/CLAUDE.md         (ссылка)
-#   skills/shared/*, skills/vendor/shared/* → ~/.gemini/config/skills/<имя> (Antigravity; только если ~/.gemini есть)
+#   skills/shared/*, skills/vendor/shared/* → ~/.gemini/config/skills/<имя> (Antigravity IDE; только если ~/.gemini есть)
+#                                           → ~/.gemini/antigravity-cli/skills/<имя> (agy; если есть эта папка)
 # Что уже лежит на месте не ссылкой — переносится в ~/.claude/_backup-<дата>/.
 # Запуск: zsh install.sh   (повторный запуск безопасен)
 set -e
@@ -37,5 +38,10 @@ if [[ -d $HOME/.gemini ]]; then
   echo "Antigravity (общие скиллы):"
   mkdir -p "$HOME/.gemini/config/skills"
   for d in "$HERE"/skills/shared/*(/) "$HERE"/skills/vendor/shared/*(N/); do link "$d" "$HOME/.gemini/config/skills/${d:t}"; done
+fi
+if [[ -d $HOME/.gemini/antigravity-cli ]]; then
+  echo "Antigravity CLI agy (общие скиллы):"
+  mkdir -p "$HOME/.gemini/antigravity-cli/skills"
+  for d in "$HERE"/skills/shared/*(/) "$HERE"/skills/vendor/shared/*(N/); do link "$d" "$HOME/.gemini/antigravity-cli/skills/${d:t}"; done
 fi
 echo "Готово."
