@@ -1,0 +1,25 @@
+# Сторонние скиллы, закреплённые на коммите. Кладутся в skills/vendor/<агенты>/<имя>/ — руками НЕ править,
+# любая правка затрётся при следующей синхронизации. Свои доработки — отдельным скиллом в skills/shared/.
+# Формат: <агенты> <имя> <репозиторий> <коммит> <путь к папке скилла> [exclude=шаблон,шаблон]
+#   агенты: shared — Claude и Antigravity, claude — только Claude (инструкции про его инструменты)
+# Восстановить ровно по списку:  python3 -X utf8 scripts/vendor-skills.py
+# Обновить до свежих версий:     python3 -X utf8 scripts/vendor-skills.py --update   (затем читать git diff)
+# Новый скилл: прочитать SKILL.md и скрипты целиком, проверить лицензию, дубли со своими скиллами и
+# «принуждающие» формулировки (MUST before ANY response) — потом строка сюда. `npx skills add` не использовать:
+# он ставит мимо репозитория.
+
+# Anthropic, Apache-2.0: дизайн интерфейсов без шаблонного «вида ИИ» (шапки каналов, HTML-страницы)
+shared frontend-design      https://github.com/anthropics/skills  dbd4588f9e1033efb41dad4bef2f7947c8993d44 skills/frontend-design
+# Upstash Context7 (официальный), MIT: свежая документация библиотек через `npx ctx7@latest`; Node 22.13+
+shared find-docs            https://github.com/upstash/context7   a6e4ace848ab045dd7a6053e8aff142564b0378a skills/find-docs
+# obra/superpowers, MIT: отладка по шагам — сначала причина, потом правка
+claude systematic-debugging https://github.com/obra/superpowers   2ce8aa15d05bd57213e6f746f953aafb7ded7a8b skills/systematic-debugging
+
+# --- По запросу (раскомментировать и запустить скрипт)
+# Obsidian, MIT (Steph Ango). Внимание: obsidian-markdown может срабатывать на любой .md с frontmatter.
+# shared obsidian-markdown https://github.com/kepano/obsidian-skills 3ccff5338ea700537839b21900aa5358a0402c98 skills/obsidian-markdown
+# shared obsidian-bases    https://github.com/kepano/obsidian-skills 3ccff5338ea700537839b21900aa5358a0402c98 skills/obsidian-bases
+# shared json-canvas       https://github.com/kepano/obsidian-skills 3ccff5338ea700537839b21900aa5358a0402c98 skills/json-canvas
+# shared obsidian-cli      https://github.com/kepano/obsidian-skills 3ccff5338ea700537839b21900aa5358a0402c98 skills/obsidian-cli
+# Remotion: видео на React (лицензия в репозитории скиллов не указана)
+# shared remotion-best-practices https://github.com/remotion-dev/skills 039e8a2fc78b67efc228d5645367838b85818a1c skills/remotion-best-practices
