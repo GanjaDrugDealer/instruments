@@ -32,7 +32,8 @@ AI Projects/
 После `git clone` или `git pull`:
 
 - macOS: `zsh install.sh` — символические ссылки в `~/.claude/skills/` и на `~/.claude/CLAUDE.md`.
-- Antigravity: оба установщика подключают общие скиллы и в `~/.gemini/config/skills/`, если папка `~/.gemini` есть.
+- Antigravity: оба установщика подключают общие скиллы и в `~/.gemini/config/skills/` (IDE), если папка `~/.gemini` есть,
+  и в `~/.gemini/antigravity-cli/skills/` (CLI `agy`), если есть `~/.gemini/antigravity-cli`.
 - Windows: `powershell -ExecutionPolicy Bypass -File install.ps1` — junction-ссылки на скиллы, `CLAUDE.md` копией
   (после каждого `git pull` запускать снова).
 
