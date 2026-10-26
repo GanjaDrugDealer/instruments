@@ -1,19 +1,20 @@
 #!/bin/zsh
 # Создание нового проекта из шаблона _Instruments/templates/project (Mac).
 # Пара к new-project.ps1 (Windows): те же аргументы, проверки и коды выхода.
-#   zsh new-project.sh [Claude|Antigravity] [имя] [--no-prompt]
+#   zsh new-project.sh [Claude|Antigravity|Local] [имя] [--no-prompt]
 #   --no-prompt — для агента: ничего не спрашивать, при ошибке выйти с кодом 2.
 # Человеку: двойной щелчок по «AI Projects/new-project.command».
 set -e
 HERE=${0:A:h}
 ROOT=${HERE:h:h}                       # папка «AI Projects»
 TEMPLATE=$ROOT/_Instruments/templates/project
+OVERLAY=$ROOT/_Instruments/templates/project-local
 
 Branch= Name= NoPrompt=
 for a in "$@"; do
   case $a in
     --no-prompt|-y) NoPrompt=1 ;;
-    *) if [[ -z $Branch && $a == (Claude|Antigravity) ]]; then Branch=$a
+    *) if [[ -z $Branch && $a == (Claude|Antigravity|Local) ]]; then Branch=$a
        elif [[ -z $Name ]]; then Name=$a
        else echo "  Лишний аргумент: $a"; exit 2; fi ;;
   esac
@@ -21,12 +22,13 @@ done
 [[ -n $NoPrompt && -z $Branch ]] && Branch=Claude   # ветка по умолчанию — Claude
 
 # Ветка: кто ведёт проект
-while [[ $Branch != (Claude|Antigravity) ]]; do
-  read "ans?Кто ведёт проект? 1 - Claude, 2 - Antigravity [1]: "
+while [[ $Branch != (Claude|Antigravity|Local) ]]; do
+  read "ans?Кто ведёт проект? 1 - Claude, 2 - Antigravity, 3 - Local [1]: "
   case $ans in
     ''|1|Claude|claude)       Branch=Claude ;;
     2|Antigravity|antigravity) Branch=Antigravity ;;
-    *) echo "Введите 1 или 2." ;;
+    3|Local|local)            Branch=Local ;;
+    *) echo "Введите 1, 2 или 3." ;;
   esac
 done
 
@@ -46,6 +48,11 @@ done
 mkdir -p "$dest"
 cp -R "$TEMPLATE"/. "$dest"/
 
+# Для Local — оверлей поверх шаблона
+if [[ $Branch == Local ]]; then
+  cp -R "$OVERLAY"/. "$dest"/
+fi
+
 # Подстановки в живых файлах
 python3 - "$dest" "$Name" "$(date +%F)" <<'EOF'
 import sys, pathlib
@@ -60,4 +67,10 @@ EOF
 
 echo
 echo "Создан проект: $dest"
-echo "Дальше: открыть эту папку в Claude Code и написать «Собираем контекст»."
+if [[ $Branch == Local ]]; then
+    echo "⚠ Локальные модели (Ollama) есть только на Windows-ПК."
+    echo "Дальше: запустить sync_webui_project.py и выбрать в Open WebUI модель с именем проекта:"
+    echo "  python -X utf8 \"C:\\AI Projects\\Antigravity\\local-gpt\\scripts\\sync_webui_project.py\" \"$dest\""
+else
+    echo "Дальше: открыть эту папку в Claude Code и написать «Собираем контекст»."
+fi

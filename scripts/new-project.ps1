@@ -6,21 +6,23 @@ param(
     [switch]$NoPrompt   # для агента: ничего не спрашивать, при ошибке выйти с кодом 2
 )
 $ErrorActionPreference = 'Stop'
-if ($NoPrompt -and $Branch -notin @('Claude', 'Antigravity')) {
-    Write-Host "  Ветка '$Branch' не подходит: Claude или Antigravity." -ForegroundColor Yellow; exit 2
+if ($NoPrompt -and $Branch -notin @('Claude', 'Antigravity', 'Local')) {
+    Write-Host "  Ветка '$Branch' не подходит: Claude, Antigravity или Local." -ForegroundColor Yellow; exit 2
 }
 
 $root     = Split-Path $PSScriptRoot -Parent | Split-Path -Parent
 $template = Join-Path $root '_Instruments\templates\project'
+$overlay  = Join-Path $root '_Instruments\templates\project-local'
 $utf8     = New-Object System.Text.UTF8Encoding($false)
 
 # Ветка: кто ведёт проект
-while ($Branch -notin @('Claude', 'Antigravity')) {
-    $ans = Read-Host 'Кто ведёт проект? 1 - Claude, 2 - Antigravity [1]'
+while ($Branch -notin @('Claude', 'Antigravity', 'Local')) {
+    $ans = Read-Host 'Кто ведёт проект? 1 - Claude, 2 - Antigravity, 3 - Local [1]'
     switch ($ans) {
         { $_ -in @('', '1', 'Claude', 'claude') }           { $Branch = 'Claude' }
         { $_ -in @('2', 'Antigravity', 'antigravity') }     { $Branch = 'Antigravity' }
-        default { Write-Host 'Введите 1 или 2.' -ForegroundColor Yellow }
+        { $_ -in @('3', 'Local', 'local') }                 { $Branch = 'Local' }
+        default { Write-Host 'Введите 1, 2 или 3.' -ForegroundColor Yellow }
     }
 }
 
@@ -40,6 +42,11 @@ while ($true) {
 New-Item -ItemType Directory -Force $dest | Out-Null
 Copy-Item -Path (Join-Path $template '*') -Destination $dest -Recurse -Force
 
+# Для Local — поверх копии шаблона кладём оверлей
+if ($Branch -eq 'Local') {
+    Copy-Item -Path (Join-Path $overlay '*') -Destination $dest -Recurse -Force
+}
+
 # Подстановки в живых файлах
 $subs = @{
     'CLAUDE.md' = @{ '<project-name>' = $Name }
@@ -55,4 +62,9 @@ foreach ($file in $subs.Keys) {
 
 Write-Host ''
 Write-Host "Создан проект: $dest" -ForegroundColor Green
-Write-Host 'Дальше: открыть эту папку в Claude Code и написать «Собираем контекст».'
+if ($Branch -eq 'Local') {
+    Write-Host "Дальше: запустить sync_webui_project.py и выбрать в Open WebUI модель с именем проекта:"
+    Write-Host "  python -X utf8 `"C:\AI Projects\Antigravity\local-gpt\scripts\sync_webui_project.py`" `"$dest`""
+} else {
+    Write-Host 'Дальше: открыть эту папку в Claude Code и написать «Собираем контекст».'
+}

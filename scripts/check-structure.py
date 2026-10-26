@@ -10,7 +10,7 @@ import os, re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]   # папка «AI Projects»
-BRANCHES = ["Claude", "Antigravity"]
+BRANCHES = ["Claude", "Antigravity", "Local"]
 MUST_FILES = ["CLAUDE.md", "AGENTS.md", "GUARDRAILS.md", ".env.example"]
 KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 SECRETS = {".env", "secrets.json", "credentials.json"}
@@ -30,12 +30,14 @@ HISTORICAL = {
     "docs/2026-09-15_hh-agent-local-vs-git.md",
 }
 
+LOCAL_MARKER = "ЗАКРЫТЫЙ ПРОЕКТ"
+
 out = []
 bad = warn = ok = 0
 def p(s): out.append(s)
 
 
-def check(prj: Path):
+def check(prj: Path, *, is_local: bool = False):
     issues, hints = [], []
 
     if not KEBAB.match(prj.name):
@@ -69,6 +71,31 @@ def check(prj: Path):
                     ("SKILL.md на уровень глубже — не загрузится" if nested
                      else "нет SKILL.md"))
 
+    # --- Проверки, специфичные для Local ---
+    if is_local:
+        # Маркер ЗАКРЫТЫЙ ПРОЕКТ в первых 3 строках CLAUDE.md
+        claude_md = prj / "CLAUDE.md"
+        if claude_md.exists():
+            try:
+                head = claude_md.read_text(encoding="utf-8", errors="ignore").splitlines()[:3]
+                if not any(LOCAL_MARKER in line for line in head):
+                    issues.append(f"нет маркера «{LOCAL_MARKER}» в первых 3 строках CLAUDE.md")
+            except Exception:
+                pass
+
+        # Удалённый репозиторий у закрытого проекта
+        git_config = prj / ".git" / "config"
+        if git_config.exists():
+            try:
+                gc_text = git_config.read_text(encoding="utf-8", errors="ignore")
+                if "[remote" in gc_text:
+                    issues.append("у закрытого проекта удалённый репозиторий")
+            except Exception:
+                pass
+
+        return issues, hints
+
+    # --- Проверки только для не-Local проектов ---
     # абсолютные пути наружу
     pat = re.compile(r"[A-Z]:\\(?!AI Projects)|/Users/[^/\s]+/(?!Desktop/AI Projects)")
     hits = []
@@ -120,10 +147,11 @@ for branch in BRANCHES:
     if not b.exists():
         continue
     p(f"\n=== {branch}/ ===")
+    is_local = (branch == "Local")
     for prj in sorted(b.iterdir()):
         if not prj.is_dir():
             continue
-        issues, hints = check(prj)
+        issues, hints = check(prj, is_local=is_local)
         if issues:
             bad += 1
             p(f"\n  [!] {prj.name}")
