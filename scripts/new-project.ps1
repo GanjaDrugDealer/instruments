@@ -63,8 +63,19 @@ foreach ($file in $subs.Keys) {
 Write-Host ''
 Write-Host "Создан проект: $dest" -ForegroundColor Green
 if ($Branch -eq 'Local') {
-    Write-Host "Дальше: запустить sync_webui_project.py и выбрать в Open WebUI модель с именем проекта:"
-    Write-Host "  python -X utf8 `"C:\AI Projects\Antigravity\local-gpt\scripts\sync_webui_project.py`" `"$dest`""
+    # Сразу связать с Open WebUI, если он запущен; иначе - подсказка на потом
+    $sync = Join-Path $root 'Antigravity\local-gpt\scripts\sync_webui_project.py'
+    $up = $false
+    try { $up = (Invoke-WebRequest 'http://127.0.0.1:3000/health' -UseBasicParsing -TimeoutSec 3).StatusCode -eq 200 } catch {}
+    if ($up -and (Test-Path $sync)) {
+        Write-Host 'Связываю с Open WebUI...'
+        & { $ErrorActionPreference = 'Continue'; python -X utf8 $sync $dest }
+    } else {
+        Write-Host 'Open WebUI не запущен. Запусти его (local-gpt\scripts\start_webui.ps1),'
+        Write-Host "потом двойной щелчок по sync-webui.bat в папке проекта."
+    }
+    Write-Host 'Дальше: в Open WebUI выбрать модель с именем проекта и написать «Собираем контекст».'
+    Write-Host 'После ручной правки CLAUDE.md или STATE.md - sync-webui.bat в папке проекта.'
 } else {
     Write-Host 'Дальше: открыть эту папку в Claude Code и написать «Собираем контекст».'
 }
