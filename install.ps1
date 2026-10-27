@@ -1,8 +1,10 @@
 ﻿# Lays out shared Claude skills and rules on this Windows machine:
 #   skills\shared\*, skills\claude\* -> %USERPROFILE%\.claude\skills\<name>   (directory junctions, no admin needed)
+#   skills\vendor\shared\*, skills\vendor\claude\* -> %USERPROFILE%\.claude\skills\<name>   (third-party, vendor-skills.txt)
 #   project-skills.txt       -> %USERPROFILE%\.claude\skills\<name>   (junctions to project skills)
 #   rules\CLAUDE.global.md   -> %USERPROFILE%\.claude\CLAUDE.md       (copy: file links need admin; re-run after git pull)
-#   skills\shared\*          -> %USERPROFILE%\.gemini\config\skills\<name> (Antigravity; only if %USERPROFILE%\.gemini exists)
+#   skills\shared\*, skills\vendor\shared\* -> %USERPROFILE%\.gemini\config\skills\<name> (Antigravity IDE; only if %USERPROFILE%\.gemini exists)
+#                            -> %USERPROFILE%\.gemini\antigravity-cli\skills\<name> (agy; only if that folder exists)
 # Existing non-link items are moved to %USERPROFILE%\.claude\_backup-<date>\.
 # Run:  powershell -ExecutionPolicy Bypass -File install.ps1   (safe to re-run)
 $ErrorActionPreference = "Stop"
@@ -28,6 +30,11 @@ Write-Host "Shared skills:"
 Get-ChildItem (Join-Path $Here "skills\shared") -Directory | ForEach-Object { Link-Dir $_.FullName (Join-Path $Dest $_.Name) }
 Write-Host "Claude-only skills:"
 Get-ChildItem (Join-Path $Here "skills\claude") -Directory | ForEach-Object { Link-Dir $_.FullName (Join-Path $Dest $_.Name) }
+Write-Host "Third-party skills (vendor-skills.txt):"
+foreach ($sub in "shared", "claude") {
+  $vd = Join-Path $Here "skills\vendor\$sub"
+  if (Test-Path $vd) { Get-ChildItem $vd -Directory | ForEach-Object { Link-Dir $_.FullName (Join-Path $Dest $_.Name) } }
+}
 Write-Host "Project skills:"
 Get-Content -Encoding UTF8 (Join-Path $Here "project-skills.txt") | Where-Object { $_ -and -not $_.TrimStart().StartsWith("#") } | ForEach-Object {
   $src = Join-Path $AI ($_.Trim() -replace "/", "\")
@@ -46,5 +53,16 @@ if (Test-Path $Gemini) {
   $GDest = Join-Path $Gemini "config\skills"
   New-Item -ItemType Directory -Force -Path $GDest | Out-Null
   Get-ChildItem (Join-Path $Here "skills\shared") -Directory | ForEach-Object { Link-Dir $_.FullName (Join-Path $GDest $_.Name) }
+  $vd = Join-Path $Here "skills\vendor\shared"
+  if (Test-Path $vd) { Get-ChildItem $vd -Directory | ForEach-Object { Link-Dir $_.FullName (Join-Path $GDest $_.Name) } }
+}
+$AgyCli = Join-Path $Gemini "antigravity-cli"
+if (Test-Path $AgyCli) {
+  Write-Host "Antigravity CLI agy (shared skills):"
+  $CDest = Join-Path $AgyCli "skills"
+  New-Item -ItemType Directory -Force -Path $CDest | Out-Null
+  Get-ChildItem (Join-Path $Here "skills\shared") -Directory | ForEach-Object { Link-Dir $_.FullName (Join-Path $CDest $_.Name) }
+  $vd = Join-Path $Here "skills\vendor\shared"
+  if (Test-Path $vd) { Get-ChildItem $vd -Directory | ForEach-Object { Link-Dir $_.FullName (Join-Path $CDest $_.Name) } }
 }
 Write-Host "Done."

@@ -133,7 +133,8 @@ _Instruments\skills\
 - Нужно одному проекту — `<project>\.claude\skills\`. Едет вместе с папкой.
 - Переносимое знание, нужное везде — `_Instruments/skills/shared/`,
   раздаётся ссылками в профиль пользователя установщиком: Mac — `zsh install.sh`
-  (символические ссылки в `~/.claude/skills/` и `~/.gemini/config/skills/`),
+  (символические ссылки в `~/.claude/skills/`, `~/.gemini/config/skills/` — Antigravity IDE,
+  `~/.gemini/antigravity-cli/skills/` — CLI `agy`),
   Windows — `install.ps1` (junction-ссылки, как ниже). Руками на Windows:
 
 ```cmd

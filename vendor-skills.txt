@@ -1,0 +1,46 @@
+# Сторонние скиллы, закреплённые на коммите. Кладутся в skills/vendor/<агенты>/<имя>/ — руками НЕ править,
+# любая правка затрётся при следующей синхронизации. Свои доработки — отдельным скиллом в skills/shared/.
+# Формат: <агенты> <имя> <репозиторий> <коммит> <путь к папке скилла> [exclude=шаблон,шаблон] [manual]
+#   агенты: shared — Claude и Antigravity, claude — только Claude
+#   manual: только по команде /имя — описание не висит в контексте, сам агент скилл не вызывает
+#           (поле disable-model-invocation; поддержка в Antigravity не проверена, поэтому manual — только claude).
+#           После вызова текст скилла остаётся в этой сессии до её конца.
+# Восстановить ровно по списку:  python3 -X utf8 scripts/vendor-skills.py
+# Обновить до свежих версий:     python3 -X utf8 scripts/vendor-skills.py --update   (затем читать git diff)
+# Новый скилл: прочитать SKILL.md и скрипты целиком, проверить лицензию, дубли со своими скиллами и
+# «принуждающие» формулировки (MUST before ANY response) — потом строка сюда. `npx skills add` не использовать:
+# он ставит мимо репозитория.
+
+# --- Всегда под рукой (агент вызывает сам по описанию)
+# Anthropic, Apache-2.0: дизайн интерфейсов без шаблонного «вида ИИ» (шапки каналов, HTML-страницы)
+shared frontend-design      https://github.com/anthropics/skills  dbd4588f9e1033efb41dad4bef2f7947c8993d44 skills/frontend-design
+# Upstash Context7 (официальный), MIT: свежая документация библиотек через `npx ctx7@latest`; Node 22.13+
+shared find-docs            https://github.com/upstash/context7   a6e4ace848ab045dd7a6053e8aff142564b0378a skills/find-docs
+# obra/superpowers, MIT: отладка по шагам — сначала причина, потом правка
+claude systematic-debugging https://github.com/obra/superpowers   2ce8aa15d05bd57213e6f746f953aafb7ded7a8b skills/systematic-debugging
+# Remotion: монтаж видео кодом на React (лицензия в репозитории скиллов не указана)
+shared remotion-best-practices https://github.com/remotion-dev/skills 039e8a2fc78b67efc228d5645367838b85818a1c skills/remotion-best-practices
+
+# --- Только по команде /имя
+# obra/superpowers, MIT: /brainstorming — уточнить задачу и дизайн до кода (старт проекта, новая фича);
+# в конце он передаёт в /writing-plans — план по шагам.
+claude brainstorming        https://github.com/obra/superpowers   2ce8aa15d05bd57213e6f746f953aafb7ded7a8b skills/brainstorming manual
+claude writing-plans        https://github.com/obra/superpowers   2ce8aa15d05bd57213e6f746f953aafb7ded7a8b skills/writing-plans manual
+# Веб-интерфейсы — только если проект этого требует
+# Vercel: аудит UI по Web Interface Guidelines (правила тянет по сети при каждом запуске, без закрепления)
+claude web-design-guidelines https://github.com/vercel-labs/agent-skills 063bee94c3f4df8453406c830b0a7df0f2860278 skills/web-design-guidelines manual
+# Next Level Builder, MIT: база стилей, палитр, шрифтов + поиск по ней (python3)
+claude ui-ux-pro-max        https://github.com/nextlevelbuilder/ui-ux-pro-max-skill 623a9a9037d006ea727f8213f084d02a6b6f11b5 .claude/skills/ui-ux-pro-max exclude=scripts/tests manual
+# Emil Kowalski (Sonner, Vaul), MIT: полировка UI и анимаций
+claude emil-design-eng      https://github.com/emilkowalski/skill  2d228630ba1446365f614a108cb8252f1feda202 skills/emil-design-eng manual
+# shadcn, MIT: компоненты shadcn/ui
+claude shadcn               https://github.com/shadcn/ui           25af02b1b467fcd53b63e0c6d6d324c57c16ef18 skills/shadcn manual
+# hairyf, MIT: Tailwind CSS v4
+claude tailwindcss          https://github.com/hairyf/skills       ffa1f904012f48f5bdf34ebb692daa09c778d47f skills/tailwindcss manual
+
+# --- Позже (раскомментировать и запустить скрипт)
+# Obsidian, MIT (Steph Ango). Внимание: obsidian-markdown может срабатывать на любой .md с frontmatter.
+# shared obsidian-markdown https://github.com/kepano/obsidian-skills 3ccff5338ea700537839b21900aa5358a0402c98 skills/obsidian-markdown
+# shared obsidian-bases    https://github.com/kepano/obsidian-skills 3ccff5338ea700537839b21900aa5358a0402c98 skills/obsidian-bases
+# shared json-canvas       https://github.com/kepano/obsidian-skills 3ccff5338ea700537839b21900aa5358a0402c98 skills/json-canvas
+# shared obsidian-cli      https://github.com/kepano/obsidian-skills 3ccff5338ea700537839b21900aa5358a0402c98 skills/obsidian-cli
