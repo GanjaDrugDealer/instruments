@@ -44,4 +44,16 @@ if [[ -d $HOME/.gemini/antigravity-cli ]]; then
   mkdir -p "$HOME/.gemini/antigravity-cli/skills"
   for d in "$HERE"/skills/shared/*(/) "$HERE"/skills/vendor/shared/*(N/); do link "$d" "$HOME/.gemini/antigravity-cli/skills/${d:t}"; done
 fi
+# Codex: user skills; preserve old files in a separate backup.
+CODEX_DEST=$HOME/.agents/skills
+BAK=$HOME/.codex/_backup-$(date +%Y%m%d-%H%M%S)
+mkdir -p "$CODEX_DEST" "$HOME/.codex"
+echo "Codex skills:"
+for d in "$HERE"/skills/shared/*(N/) "$HERE"/skills/vendor/{shared,claude}/*(N/) "$HERE"/skills/codex/*(N/); do
+  link "$d" "$CODEX_DEST/${d:t}"
+done
+grep -v '^\s*#' "$HERE/project-skills.txt" | grep -v '^\s*$' | while read -r rel; do
+  link "$AI/$rel" "$CODEX_DEST/${rel:t}"
+done
+link "$HERE/rules/Codex.global.md" "$HOME/.codex/AGENTS.md"
 echo "Готово."

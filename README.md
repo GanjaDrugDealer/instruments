@@ -64,3 +64,17 @@ AI Projects/
   `install.ps1` раздаёт `shared` и `claude`.
 - Утилиты: `scripts/check-structure.py` (линтер, ничего не меняет), `scripts/snapdiff.py` (дифф для приёмки без git).
 - `_archive/` — отключённое старое.
+
+## Codex
+
+Оба установщика подключают скиллы в `~/.agents/skills/`: `skills/shared/`,
+`skills/vendor/shared/`, универсальные сторонние скиллы из `skills/vendor/claude/`,
+`skills/codex/` и существующие скиллы из `project-skills.txt`.
+Claude-only мост из `skills/claude/` в Codex не устанавливается.
+Используются ссылки на единственный исходник; существующие обычные папки
+сохраняются в `~/.codex/_backup-<дата>/`.
+`rules/Codex.global.md` устанавливается как `~/.codex/AGENTS.md` (Windows: копия,
+Mac: ссылка). Скиллы доступны со следующего хода; если не появились — перезапустить Codex.
+
+Скилл `git-publish` описывает проверку диффа, коммит, push текущей ветки без force
+и проверку удалённого коммита. Публикация в GitHub не означает деплой сайта.

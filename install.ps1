@@ -65,4 +65,27 @@ if (Test-Path $AgyCli) {
   $vd = Join-Path $Here "skills\vendor\shared"
   if (Test-Path $vd) { Get-ChildItem $vd -Directory | ForEach-Object { Link-Dir $_.FullName (Join-Path $CDest $_.Name) } }
 }
+# Codex: user skills in ~/.agents/skills (directory junctions).
+$CodexDest = Join-Path $env:USERPROFILE ".agents\skills"
+New-Item -ItemType Directory -Force -Path $CodexDest | Out-Null
+# Keep Codex backups separate from Claude backups, including same-name skills.
+$Bak = Join-Path $env:USERPROFILE (".codex\_backup-" + (Get-Date -Format "yyyyMMdd-HHmmss"))
+Write-Host "Codex skills:"
+foreach ($sub in "shared", "vendor\shared", "vendor\claude", "codex") {
+  $source = Join-Path $Here "skills\$sub"
+  if (Test-Path $source) { Get-ChildItem $source -Directory | ForEach-Object { Link-Dir $_.FullName (Join-Path $CodexDest $_.Name) } }
+}
+Get-Content -Encoding UTF8 (Join-Path $Here "project-skills.txt") | Where-Object { $_ -and -not $_.TrimStart().StartsWith("#") } | ForEach-Object {
+  $src = Join-Path $AI ($_.Trim() -replace "/", "\")
+  Link-Dir $src (Join-Path $CodexDest (Split-Path -Leaf $src))
+}
+$CodexRoot = Join-Path $env:USERPROFILE ".codex"
+New-Item -ItemType Directory -Force -Path $CodexRoot | Out-Null
+$CodexRules = Join-Path $CodexRoot "AGENTS.md"
+if (Test-Path $CodexRules) {
+  New-Item -ItemType Directory -Force -Path $Bak | Out-Null
+  Copy-Item -LiteralPath $CodexRules -Destination $Bak
+}
+Copy-Item -LiteralPath (Join-Path $Here "rules\Codex.global.md") -Destination $CodexRules -Force
+Write-Host "  Codex AGENTS.md copied"
 Write-Host "Done."
