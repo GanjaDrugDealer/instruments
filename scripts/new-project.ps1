@@ -3,16 +3,27 @@
 param(
     [string]$Branch,
     [string]$Name,
-    [switch]$NoPrompt   # для агента: ничего не спрашивать, при ошибке выйти с кодом 2
+    [switch]$NoPrompt,   # для агента: ничего не спрашивать, при ошибке выйти с кодом 2
+    [string]$ProjectsRoot
 )
 $ErrorActionPreference = 'Stop'
 if ($NoPrompt -and $Branch -notin @('Claude', 'Antigravity', 'Local', 'Codex')) {
     Write-Host "  Ветка '$Branch' не подходит: Claude, Antigravity, Local или Codex." -ForegroundColor Yellow; exit 2
 }
 
-$root     = Split-Path $PSScriptRoot -Parent | Split-Path -Parent
-$template = Join-Path $root '_Instruments\templates\project'
-$overlay  = Join-Path $root '_Instruments\templates\project-local'
+$repoRoot = Split-Path $PSScriptRoot -Parent
+if (-not $ProjectsRoot) {
+    $ProjectsRoot = Split-Path $repoRoot -Parent
+    if ((Split-Path $ProjectsRoot -Leaf) -in @('Claude', 'Antigravity', 'Local', 'Codex')) {
+        $ProjectsRoot = Split-Path $ProjectsRoot -Parent
+    }
+}
+$root     = $ProjectsRoot
+$template = Join-Path $repoRoot 'templates\project'
+$overlay  = Join-Path $repoRoot 'templates\project-local'
+if (-not (Test-Path -LiteralPath $template -PathType Container)) {
+    throw "Project template not found: $template"
+}
 $utf8     = New-Object System.Text.UTF8Encoding($false)
 
 # Ветка: кто ведёт проект

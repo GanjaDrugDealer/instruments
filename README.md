@@ -25,6 +25,7 @@ AI Projects/
 
 ## Новый проект
 
+- Для нашей установки на Windows: двойной щелчок по `new-project.bat` в папке этого репозитория. Введите имя проекта латиницей через дефис; проект появится в `C:\Ai Projects\Codex\<имя>`. Окно остаётся открытым, чтобы увидеть результат или ошибку.
 - Mac: двойной щелчок по `AI Projects/new-project.command` или
   `zsh _Instruments/scripts/new-project.sh Claude <имя> --no-prompt`.
 - Windows: `new-project.bat` в корне `C:\AI Projects`.
