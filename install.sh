@@ -4,6 +4,7 @@
 #   skills/vendor/{shared,claude}/* → ~/.claude/skills/<имя> (сторонние, vendor-skills.txt)
 #   project-skills.txt         → ~/.claude/skills/<имя>      (ссылки на скиллы проектов)
 #   rules/CLAUDE.global.md     → ~/.claude/CLAUDE.md         (ссылка)
+#                              → ~/.codex/AGENTS.md, ~/.gemini/GEMINI.md (тот же файл для всех агентов)
 #   skills/shared/*, skills/vendor/shared/* → ~/.gemini/config/skills/<имя> (Antigravity IDE; только если ~/.gemini есть)
 #                                           → ~/.gemini/antigravity-cli/skills/<имя> (agy; если есть эта папка)
 # Что уже лежит на месте не ссылкой — переносится в ~/.claude/_backup-<дата>/.
@@ -55,5 +56,10 @@ done
 grep -v '^\s*#' "$HERE/project-skills.txt" | grep -v '^\s*$' | while read -r rel; do
   link "$AI/$rel" "$CODEX_DEST/${rel:t}"
 done
-link "$HERE/rules/Codex.global.md" "$HOME/.codex/AGENTS.md"
+link "$HERE/rules/CLAUDE.global.md" "$HOME/.codex/AGENTS.md"
+# Antigravity: общие правила в ~/.gemini/GEMINI.md — тот же файл.
+if [[ -d $HOME/.gemini ]]; then
+  BAK=$HOME/.gemini/_backup-$(date +%Y%m%d-%H%M%S)
+  link "$HERE/rules/CLAUDE.global.md" "$HOME/.gemini/GEMINI.md"
+fi
 echo "Готово."

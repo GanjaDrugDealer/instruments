@@ -3,6 +3,7 @@
 #   skills\vendor\shared\*, skills\vendor\claude\* -> %USERPROFILE%\.claude\skills\<name>   (third-party, vendor-skills.txt)
 #   project-skills.txt       -> %USERPROFILE%\.claude\skills\<name>   (junctions to project skills)
 #   rules\CLAUDE.global.md   -> %USERPROFILE%\.claude\CLAUDE.md       (copy: file links need admin; re-run after git pull)
+#                            -> %USERPROFILE%\.codex\AGENTS.md, %USERPROFILE%\.gemini\GEMINI.md (same file for all agents)
 #   skills\shared\*, skills\vendor\shared\* -> %USERPROFILE%\.gemini\config\skills\<name> (Antigravity IDE; only if %USERPROFILE%\.gemini exists)
 #                            -> %USERPROFILE%\.gemini\antigravity-cli\skills\<name> (agy; only if that folder exists)
 # Existing non-link items are moved to %USERPROFILE%\.claude\_backup-<date>\.
@@ -86,6 +87,17 @@ if (Test-Path $CodexRules) {
   New-Item -ItemType Directory -Force -Path $Bak | Out-Null
   Copy-Item -LiteralPath $CodexRules -Destination $Bak
 }
-Copy-Item -LiteralPath (Join-Path $Here "rules\Codex.global.md") -Destination $CodexRules -Force
-Write-Host "  Codex AGENTS.md copied"
+Copy-Item -LiteralPath (Join-Path $Here "rules\CLAUDE.global.md") -Destination $CodexRules -Force
+Write-Host "  Codex AGENTS.md copied (same rules file as Claude)"
+# Antigravity: global rules in ~/.gemini/GEMINI.md (same rules file).
+if (Test-Path $Gemini) {
+  $GRules = Join-Path $Gemini "GEMINI.md"
+  if (Test-Path $GRules) {
+    $GBak = Join-Path $Gemini ("_backup-" + (Get-Date -Format "yyyyMMdd-HHmmss"))
+    New-Item -ItemType Directory -Force -Path $GBak | Out-Null
+    Copy-Item -LiteralPath $GRules -Destination $GBak
+  }
+  Copy-Item -LiteralPath (Join-Path $Here "rules\CLAUDE.global.md") -Destination $GRules -Force
+  Write-Host "  Antigravity GEMINI.md copied (same rules file as Claude)"
+}
 Write-Host "Done."
