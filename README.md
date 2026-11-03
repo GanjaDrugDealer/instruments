@@ -16,9 +16,10 @@ AI Projects/
 │   ├── install.sh / install.ps1
 │   └── bin/                 личные инструменты машины (gh и т.п.), не в git
 ├── new-project.command      Mac: двойной щелчок — новый проект
-├── new-project.bat          Windows: двойной щелчок или new-project.bat [Claude|Antigravity|Local] [name]
+├── new-project.bat          Windows: двойной щелчок или new-project.bat [Claude|Antigravity|Local|Codex] [name]
 ├── Claude/<проект>/         проекты, которые ведёт Claude (у каждого свой репозиторий)
 ├── Antigravity/<проект>/    проекты, которые ведёт Antigravity
+├── Codex/<проект>/          проекты, которые ведёт Codex
 └── Local/<проект>/          закрытые проекты: только локальная модель, без облака
 ```
 
@@ -59,7 +60,7 @@ AI Projects/
 ## Стандарт хранения проектов (Windows-контур, 2026-09-15)
 
 - Правило — скилл `skills/shared/project-structure`; шаблон проекта — `templates/project/`, новый проект —
-  `new-project.bat <Claude|Antigravity|Local> <имя>` в корне AI Projects (`scripts/new-project.ps1`).
+  `new-project.bat <Claude|Antigravity|Local|Codex> <имя>` в корне AI Projects (`scripts/new-project.ps1`).
 - Скиллы по применимости: `skills/shared/` (все агенты), `skills/claude/` (только Claude), `skills/antigravity/`.
   `install.ps1` раздаёт `shared` и `claude`.
 - Утилиты: `scripts/check-structure.py` (линтер, ничего не меняет), `scripts/snapdiff.py` (дифф для приёмки без git).

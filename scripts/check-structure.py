@@ -10,7 +10,7 @@ import os, re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]   # папка «AI Projects»
-BRANCHES = ["Claude", "Antigravity", "Local"]
+BRANCHES = ["Claude", "Antigravity", "Local", "Codex"]
 MUST_FILES = ["CLAUDE.md", "AGENTS.md", "GUARDRAILS.md", ".env.example"]
 KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 SECRETS = {".env", "secrets.json", "credentials.json"}

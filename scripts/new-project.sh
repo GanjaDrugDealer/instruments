@@ -1,7 +1,7 @@
 #!/bin/zsh
 # Создание нового проекта из шаблона _Instruments/templates/project (Mac).
 # Пара к new-project.ps1 (Windows): те же аргументы, проверки и коды выхода.
-#   zsh new-project.sh [Claude|Antigravity|Local] [имя] [--no-prompt]
+#   zsh new-project.sh [Claude|Antigravity|Local|Codex] [имя] [--no-prompt]
 #   --no-prompt — для агента: ничего не спрашивать, при ошибке выйти с кодом 2.
 # Человеку: двойной щелчок по «AI Projects/new-project.command».
 set -e
@@ -14,7 +14,7 @@ Branch= Name= NoPrompt=
 for a in "$@"; do
   case $a in
     --no-prompt|-y) NoPrompt=1 ;;
-    *) if [[ -z $Branch && $a == (Claude|Antigravity|Local) ]]; then Branch=$a
+    *) if [[ -z $Branch && $a == (Claude|Antigravity|Local|Codex) ]]; then Branch=$a
        elif [[ -z $Name ]]; then Name=$a
        else echo "  Лишний аргумент: $a"; exit 2; fi ;;
   esac
@@ -22,13 +22,14 @@ done
 [[ -n $NoPrompt && -z $Branch ]] && Branch=Claude   # ветка по умолчанию — Claude
 
 # Ветка: кто ведёт проект
-while [[ $Branch != (Claude|Antigravity|Local) ]]; do
-  read "ans?Кто ведёт проект? 1 - Claude, 2 - Antigravity, 3 - Local [1]: "
+while [[ $Branch != (Claude|Antigravity|Local|Codex) ]]; do
+  read "ans?Кто ведёт проект? 1 - Claude, 2 - Antigravity, 3 - Local, 4 - Codex [1]: "
   case $ans in
     ''|1|Claude|claude)       Branch=Claude ;;
     2|Antigravity|antigravity) Branch=Antigravity ;;
     3|Local|local)            Branch=Local ;;
-    *) echo "Введите 1, 2 или 3." ;;
+    4|Codex|codex)            Branch=Codex ;;
+    *) echo "Введите 1, 2, 3 или 4." ;;
   esac
 done
 
@@ -71,6 +72,8 @@ if [[ $Branch == Local ]]; then
     echo "⚠ Локальные модели (Ollama) есть только на Windows-ПК."
     echo "Дальше: запустить sync_webui_project.py и выбрать в Open WebUI модель с именем проекта:"
     echo "  python -X utf8 \"C:\\AI Projects\\Antigravity\\local-gpt\\scripts\\sync_webui_project.py\" \"$dest\""
+elif [[ $Branch == Codex ]]; then
+    echo "Дальше: открыть эту папку в Codex и написать «Собираем контекст»."
 else
     echo "Дальше: открыть эту папку в Claude Code и написать «Собираем контекст»."
 fi

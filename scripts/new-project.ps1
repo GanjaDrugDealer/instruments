@@ -6,8 +6,8 @@ param(
     [switch]$NoPrompt   # для агента: ничего не спрашивать, при ошибке выйти с кодом 2
 )
 $ErrorActionPreference = 'Stop'
-if ($NoPrompt -and $Branch -notin @('Claude', 'Antigravity', 'Local')) {
-    Write-Host "  Ветка '$Branch' не подходит: Claude, Antigravity или Local." -ForegroundColor Yellow; exit 2
+if ($NoPrompt -and $Branch -notin @('Claude', 'Antigravity', 'Local', 'Codex')) {
+    Write-Host "  Ветка '$Branch' не подходит: Claude, Antigravity, Local или Codex." -ForegroundColor Yellow; exit 2
 }
 
 $root     = Split-Path $PSScriptRoot -Parent | Split-Path -Parent
@@ -16,13 +16,14 @@ $overlay  = Join-Path $root '_Instruments\templates\project-local'
 $utf8     = New-Object System.Text.UTF8Encoding($false)
 
 # Ветка: кто ведёт проект
-while ($Branch -notin @('Claude', 'Antigravity', 'Local')) {
-    $ans = Read-Host 'Кто ведёт проект? 1 - Claude, 2 - Antigravity, 3 - Local [1]'
+while ($Branch -notin @('Claude', 'Antigravity', 'Local', 'Codex')) {
+    $ans = Read-Host 'Кто ведёт проект? 1 - Claude, 2 - Antigravity, 3 - Local, 4 - Codex [1]'
     switch ($ans) {
         { $_ -in @('', '1', 'Claude', 'claude') }           { $Branch = 'Claude' }
         { $_ -in @('2', 'Antigravity', 'antigravity') }     { $Branch = 'Antigravity' }
         { $_ -in @('3', 'Local', 'local') }                 { $Branch = 'Local' }
-        default { Write-Host 'Введите 1, 2 или 3.' -ForegroundColor Yellow }
+        { $_ -in @('4', 'Codex', 'codex') }                 { $Branch = 'Codex' }
+        default { Write-Host 'Введите 1, 2, 3 или 4.' -ForegroundColor Yellow }
     }
 }
 
@@ -76,6 +77,8 @@ if ($Branch -eq 'Local') {
     }
     Write-Host 'Дальше: в Open WebUI выбрать модель с именем проекта и написать «Собираем контекст».'
     Write-Host 'После ручной правки CLAUDE.md или STATE.md - sync-webui.bat в папке проекта.'
+} elseif ($Branch -eq 'Codex') {
+    Write-Host 'Дальше: открыть эту папку в Codex и написать «Собираем контекст».'
 } else {
     Write-Host 'Дальше: открыть эту папку в Claude Code и написать «Собираем контекст».'
 }
