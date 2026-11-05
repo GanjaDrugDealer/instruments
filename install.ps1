@@ -2,10 +2,12 @@
 #   skills\shared\*, skills\claude\* -> %USERPROFILE%\.claude\skills\<name>   (directory junctions, no admin needed)
 #   skills\vendor\shared\*, skills\vendor\claude\* -> %USERPROFILE%\.claude\skills\<name>   (third-party, vendor-skills.txt)
 #   project-skills.txt       -> %USERPROFILE%\.claude\skills\<name>   (junctions to project skills)
-#   rules\CLAUDE.global.md   -> %USERPROFILE%\.claude\CLAUDE.md       (copy: file links need admin; re-run after git pull)
+#   rules\CLAUDE.global.md   -> %USERPROFILE%\.claude\CLAUDE.md       (copy: file links need admin; auto-sync re-runs install)
 #                            -> %USERPROFILE%\.codex\AGENTS.md, %USERPROFILE%\.gemini\GEMINI.md (same file for all agents)
 #   skills\shared\*, skills\vendor\shared\* -> %USERPROFILE%\.gemini\config\skills\<name> (Antigravity IDE; only if %USERPROFILE%\.gemini exists)
 #                            -> %USERPROFILE%\.gemini\antigravity-cli\skills\<name> (agy; only if that folder exists)
+#   auto-sync: Task Scheduler task AI-Instruments-Sync -> scripts\sync.ps1 (at logon, daily 04:00 MSK)
+#              + Claude SessionStart hook (scripts\sync-status.ps1) in %USERPROFILE%\.claude\settings.json
 # Existing non-link items are moved to %USERPROFILE%\.claude\_backup-<date>\.
 # Run:  powershell -ExecutionPolicy Bypass -File install.ps1   (safe to re-run)
 $ErrorActionPreference = "Stop"
@@ -99,5 +101,30 @@ if (Test-Path $Gemini) {
   }
   Copy-Item -LiteralPath (Join-Path $Here "rules\CLAUDE.global.md") -Destination $GRules -Force
   Write-Host "  Antigravity GEMINI.md copied (same rules file as Claude)"
+}
+# Auto-sync (scripts\sync.ps1). Skipped when install.ps1 is run by the sync itself.
+if (-not $env:INSTRUMENTS_SYNC) {
+  Write-Host "Auto-sync (Task Scheduler: at logon, daily 04:00 MSK):"
+  $TaskName = "AI-Instruments-Sync"
+  $ps = Join-Path $env:WINDIR "System32\WindowsPowerShell\v1.0\powershell.exe"
+  $syncArgs = "--headless `"$ps`" -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$Here\scripts\sync.ps1`""
+  $action = New-ScheduledTaskAction -Execute "conhost.exe" -Argument $syncArgs
+  $atLogon = New-ScheduledTaskTrigger -AtLogOn -User "$env:USERDOMAIN\$env:USERNAME"
+  $nightly = New-ScheduledTaskTrigger -Daily -At "04:00"
+  # Fixed +03:00 offset: 04:00 Moscow time whatever the PC time zone is.
+  $nightly.StartBoundary = (Get-Date).AddDays(1).ToString("yyyy-MM-dd") + "T04:00:00+03:00"
+  $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
+    -ExecutionTimeLimit (New-TimeSpan -Minutes 10) -MultipleInstances IgnoreNew
+  $principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Limited
+  Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $atLogon, $nightly -Settings $settings `
+    -Principal $principal -Force | Out-Null
+  Start-ScheduledTask -TaskName $TaskName
+  Write-Host "  task $TaskName registered and started"
+  Write-Host "Claude SessionStart hook:"
+  $py = Get-Command python.exe -ErrorAction SilentlyContinue | Where-Object { $_.Source -notlike "*WindowsApps*" } | Select-Object -First 1
+  if ($py) {
+    & $py.Source -X utf8 (Join-Path $Here "scripts\claude-hook.py") (Join-Path $Claude "settings.json") (Join-Path $Here "scripts\sync-status.ps1")
+    if ($LASTEXITCODE -ne 0) { throw "claude-hook.py failed" }
+  } else { Write-Host "  ! python.exe not found - hook not set" }
 }
 Write-Host "Done."

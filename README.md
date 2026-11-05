@@ -12,7 +12,8 @@ AI Projects/
 │   ├── project-skills.txt   скиллы проектов, нужные и вне их папок
 │   ├── templates/project/   шаблон нового проекта (стандарт — скилл project-structure)
 │   ├── templates/project-local/   оверлей шаблона для закрытых (Local) проектов
-│   ├── scripts/             new-project.sh / .ps1, snapdiff.py (приёмка по диффу), check-structure.py (линтер)
+│   ├── scripts/             new-project.sh / .ps1, snapdiff.py (приёмка по диффу), check-structure.py (линтер),
+│   │                        sync.sh / .ps1 (автосинхронизация)
 │   ├── install.sh / install.ps1
 │   └── bin/                 личные инструменты машины (gh и т.п.), не в git
 ├── new-project.command      Mac: двойной щелчок — новый проект
@@ -38,10 +39,25 @@ AI Projects/
 - macOS: `zsh install.sh` — символические ссылки в `~/.claude/skills/` и на `~/.claude/CLAUDE.md`.
 - Antigravity: оба установщика подключают общие скиллы и в `~/.gemini/config/skills/` (IDE), если папка `~/.gemini` есть,
   и в `~/.gemini/antigravity-cli/skills/` (CLI `agy`), если есть `~/.gemini/antigravity-cli`.
-- Windows: `powershell -ExecutionPolicy Bypass -File install.ps1` — junction-ссылки на скиллы, `CLAUDE.md` копией
-  (после каждого `git pull` запускать снова).
+- Windows: `powershell -ExecutionPolicy Bypass -File install.ps1` — junction-ссылки на скиллы, `CLAUDE.md` копией.
 
 То, что уже лежало на месте не ссылкой, переносится в `~/.claude/_backup-<дата>/`.
+
+## Автосинхронизация
+
+Установщик один раз ставит её на машину, дальше `git pull` и повторный установщик руками не нужны.
+
+- **Когда:** при входе в систему, ночью в 04:00 МСК (пропущено — при следующем включении или пробуждении)
+  и хуком Claude при старте сессии, если последняя проверка старше 15 минут.
+- **Что делает** (`scripts/sync.sh` / `sync.ps1`): `git fetch`, fast-forward `main` из `origin/main`, при новых
+  коммитах — установщик. Ничего не форсирует: свои правки, незапушенные коммиты, другая ветка, нет сети —
+  только запись причины в файл состояния (на Mac ещё уведомление).
+- **Где:** Mac — launchd `com.ganjadrugdealer.instruments-sync`, состояние и журнал в `~/.local/state/instruments-sync/`;
+  Windows — задача Планировщика `AI-Instruments-Sync`, состояние и журнал в `%LOCALAPPDATA%\instruments-sync\`.
+- **Хук** (`scripts/sync-status.*`, `SessionStart` в `~/.claude/settings.json`, ставит `scripts/claude-hook.py`):
+  молчит, если всё актуально, иначе одна строка агенту — он скажет пользователю. Свежие скиллы видит следующая сессия.
+- Mac: если `AI Projects` на Рабочем столе, launchd может не получить доступ к папке (защита macOS). Тогда
+  синхронизацию делает хук из Claude, а в состоянии будет подсказка: дать `/bin/zsh` полный доступ к диску.
 
 ## Сторонние скиллы
 

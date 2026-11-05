@@ -7,6 +7,8 @@
 #                              → ~/.codex/AGENTS.md, ~/.gemini/GEMINI.md (тот же файл для всех агентов)
 #   skills/shared/*, skills/vendor/shared/* → ~/.gemini/config/skills/<имя> (Antigravity IDE; только если ~/.gemini есть)
 #                                           → ~/.gemini/antigravity-cli/skills/<имя> (agy; если есть эта папка)
+#   автосинхронизация: launchd-задача scripts/sync.sh (вход в систему, ночью 04:00 МСК)
+#                      + хук SessionStart Claude (scripts/sync-status.sh) в ~/.claude/settings.json
 # Что уже лежит на месте не ссылкой — переносится в ~/.claude/_backup-<дата>/.
 # Запуск: zsh install.sh   (повторный запуск безопасен)
 set -e
@@ -61,5 +63,37 @@ link "$HERE/rules/CLAUDE.global.md" "$HOME/.codex/AGENTS.md"
 if [[ -d $HOME/.gemini ]]; then
   BAK=$HOME/.gemini/_backup-$(date +%Y%m%d-%H%M%S)
   link "$HERE/rules/CLAUDE.global.md" "$HOME/.gemini/GEMINI.md"
+fi
+# Автосинхронизация (scripts/sync.sh). При запуске из самой синхронизации не трогаем.
+if [[ -z $INSTRUMENTS_SYNC ]]; then
+  echo "Автосинхронизация (launchd: вход в систему, ночью в 04:00 МСК):"
+  LABEL=com.ganjadrugdealer.instruments-sync
+  PLIST=$HOME/Library/LaunchAgents/$LABEL.plist
+  SYNC_STATE=$HOME/.local/state/instruments-sync
+  mkdir -p "${PLIST:h}" "$SYNC_STATE"
+  cat > "$PLIST" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>$LABEL</string>
+  <key>ProgramArguments</key>
+  <array><string>/bin/zsh</string><string>$HERE/scripts/sync.sh</string><string>--scheduled</string></array>
+  <key>RunAtLoad</key><true/>
+  <key>StartCalendarInterval</key><dict><key>Minute</key><integer>0</integer></dict>
+  <key>StandardOutPath</key><string>$SYNC_STATE/launchd.log</string>
+  <key>StandardErrorPath</key><string>$SYNC_STATE/launchd.log</string>
+</dict>
+</plist>
+EOF
+  launchctl bootout "gui/$UID/$LABEL" 2>/dev/null || true
+  if launchctl bootstrap "gui/$UID" "$PLIST"; then echo "  задача $LABEL загружена"
+  else echo "  ! launchctl bootstrap не прошёл — синхронизация только хуком Claude"; fi
+  echo "Хук Claude при старте сессии:"
+  if xcode-select -p >/dev/null 2>&1 && [[ -x /usr/bin/python3 ]]; then
+    /usr/bin/python3 "$HERE/scripts/claude-hook.py" "$HOME/.claude/settings.json" "$HERE/scripts/sync-status.sh"
+  else
+    echo "  ! нет python3 (Command Line Tools) — хук не поставлен"
+  fi
 fi
 echo "Готово."
