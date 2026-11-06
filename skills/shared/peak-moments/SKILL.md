@@ -76,4 +76,4 @@ python3 <скилл>/scripts/peak_moments.py source   "<папка или фай
 ## В проекте
 
 Проект со своими папками и CSV держит свою обёртку. Эталон: `Claude/youtube-shorts-cs/src/peaks.py` (`--check`, ручные правки пиков, темы по подпапкам).
-Источник скилла — эта библиотека (`_Instruments/skills/shared/peak-moments`): править здесь, в проекты копировать.
+Источник скилла — эта библиотека (`_instruments/skills/shared/peak-moments`): править здесь, в проекты копировать.

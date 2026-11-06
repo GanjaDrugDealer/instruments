@@ -30,15 +30,15 @@ Antigravity, локальная модель на Ollama — и она зара�
 
 ```
 AI Projects/           Mac: ~/Desktop/AI Projects   Windows: C:\AI Projects
-├── _Instruments/      общая библиотека: skills, agents, docs, templates, scripts
+├── _instruments/      общая библиотека: skills, agents, docs, templates, scripts
 ├── Claude/            проекты, которые ведёт Claude
 ├── Antigravity/       проекты, которые ведёт Antigravity
 └── Local/             закрытые проекты: только локальная модель, без облака
 ```
 
-Раскладка одинаковая на обеих машинах; `_Instruments` — git-репозиторий
+Раскладка одинаковая на обеих машинах; `_instruments` — git-репозиторий
 `instruments` (только рабочие скиллы и правила), синхронизация Mac ↔ Windows —
-автосинхронизация (README `_Instruments`). Работа над скиллами — в мастерской
+автосинхронизация (README `_instruments`). Работа над скиллами — в мастерской
 `Claude/ai-workshop`, репозиторий `ai-workshop`.
 Всё на локальном диске (Windows — NTFS, Mac — APFS). Google Диск больше
 не используется: он не NTFS, на нём не работают junction-ссылки и нет
@@ -64,9 +64,9 @@ AI Projects/           Mac: ~/Desktop/AI Projects   Windows: C:\AI Projects
 └── out\               финальные результаты
 ```
 
-Шаблон: `_Instruments/templates/project/`.
+Шаблон: `_instruments/templates/project/`.
 Новый проект — скилл `new-project`: Mac — `new-project.command` в корне
-AI Projects (или `_Instruments/scripts/new-project.sh`), Windows —
+AI Projects (или `_instruments/scripts/new-project.sh`), Windows —
 `new-project.bat <Claude|Antigravity> <имя>`. Ненужные папки из шаблона удалять.
 
 Папка скиллов проекта ровно одна — `.claude\skills\`. Она названа так потому,
@@ -126,22 +126,22 @@ AI Projects (или `_Instruments/scripts/new-project.sh`), Windows —
 Библиотека делится по применимости:
 
 ```
-_Instruments\skills\
+_instruments\skills\
 ├── shared\        работают у обоих агентов
 ├── claude\        только Claude Code / Cowork
 └── antigravity\   только Antigravity
 ```
 
 - Нужно одному проекту — `<project>\.claude\skills\`. Едет вместе с папкой.
-- Переносимое знание, нужное везде — `_Instruments/skills/shared/`,
+- Переносимое знание, нужное везде — `_instruments/skills/shared/`,
   раздаётся ссылками в профиль пользователя установщиком: Mac — `zsh install.sh`
   (символические ссылки в `~/.claude/skills/`, `~/.gemini/config/skills/` — Antigravity IDE,
   `~/.gemini/antigravity-cli/skills/` — CLI `agy`),
   Windows — `install.ps1` (junction-ссылки, как ниже). Руками на Windows:
 
 ```cmd
-mklink /J "C:\Users\<user>\.claude\skills\<имя>"        "C:\AI Projects\_Instruments\skills\shared\<имя>"
-mklink /J "C:\Users\<user>\.gemini\config\skills\<имя>" "C:\AI Projects\_Instruments\skills\shared\<имя>"
+mklink /J "C:\Users\<user>\.claude\skills\<имя>"        "C:\AI Projects\_instruments\skills\shared\<имя>"
+mklink /J "C:\Users\<user>\.gemini\config\skills\<имя>" "C:\AI Projects\_instruments\skills\shared\<имя>"
 ```
 
 - Инструкции про инструменты конкретного агента (Desktop Commander, device_bash,
@@ -177,7 +177,7 @@ Junction (Windows) и символическая ссылка (Mac) — не к�
 (Ollama + Open WebUI на этом ПК). Данные не попадают в облачные агенты.
 
 Корень: `C:\AI Projects\Local\<проект>\`, структура та же, что у остальных
-проектов (шаблон `_Instruments/templates/project` + оверлей `project-local`).
+проектов (шаблон `_instruments/templates/project` + оверлей `project-local`).
 
 Как работает закрытый проект:
 
@@ -229,12 +229,12 @@ Junction (Windows) и символическая ссылка (Mac) — не к�
 
 ```bash
 # Mac
-python3 -X utf8 ~/Desktop/"AI Projects"/_Instruments/scripts/check-structure.py
+python3 -X utf8 ~/Desktop/"AI Projects"/_instruments/scripts/check-structure.py
 ```
 
 ```cmd
 :: Windows
-python -X utf8 "C:\AI Projects\_Instruments\scripts\check-structure.py"
+python -X utf8 "C:\AI Projects\_instruments\scripts\check-structure.py"
 ```
 
 Он проверяет имена папок, обязательные файлы, отсутствие второй папки

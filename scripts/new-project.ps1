@@ -1,4 +1,4 @@
-﻿# Создание нового проекта из шаблона _Instruments\templates\project.
+﻿# Создание нового проекта из шаблона _instruments\templates\project.
 # Запуск: new-project.bat в корне AI Projects (двойной щелчок или с аргументами).
 param(
     [string]$Branch,
@@ -11,8 +11,8 @@ if ($NoPrompt -and $Branch -notin @('Claude', 'Antigravity', 'Local', 'Codex')) 
 }
 
 $root     = Split-Path $PSScriptRoot -Parent | Split-Path -Parent
-$template = Join-Path $root '_Instruments\templates\project'
-$overlay  = Join-Path $root '_Instruments\templates\project-local'
+$template = Join-Path $root '_instruments\templates\project'
+$overlay  = Join-Path $root '_instruments\templates\project-local'
 $utf8     = New-Object System.Text.UTF8Encoding($false)
 
 # Ветка: кто ведёт проект

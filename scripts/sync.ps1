@@ -1,4 +1,4 @@
-# Auto-sync of _Instruments on Windows: fast-forward from origin/main, then install.ps1
+# Auto-sync of _instruments on Windows: fast-forward from origin/main, then install.ps1
 # if new commits arrived. Started by:
 #   - Task Scheduler task "AI-Instruments-Sync" (registered by install.ps1): at logon and
 #     daily at 04:00 MSK (if the PC was off, at the next start);
@@ -40,6 +40,12 @@ function Finish($state, $text) {
       $text = "$text; migration failed: " + ((@($out | Where-Object { $_ -like "*!*" }) | ForEach-Object { $_.Trim().TrimStart("!").Trim() }) -join "; ")
     }
   }
+  # Rules on every run too: picks up edits of ~\.config\ai-rules\personal.md without a new commit.
+  $compose = Join-Path $Repo "scripts\compose-rules.py"
+  if ($py -and (Test-Path $compose)) {
+    $out = @(& $py.Source -X utf8 $compose 2>&1 | ForEach-Object { "$_" })
+    if (@($out | Where-Object { $_ -like "*!*" -or $_ -like "*rules ->*" }).Count -gt 0) { Write-Log ("rules: " + ($out -join " |")) }
+  }
   $unix = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
   [IO.File]::WriteAllText($StatusFile, "$state`t$unix`t$text", (New-Object Text.UTF8Encoding $false))
   Write-Log "${state}: $text"
@@ -55,8 +61,8 @@ function Last-Line($lines) { (@($lines) | Where-Object { $_ } | Select-Object -L
 
 if (-not (Get-Command git.exe -ErrorAction SilentlyContinue)) { Finish "fail" "git.exe not found in PATH" }
 $branch = "$(Invoke-Git symbolic-ref --quiet --short HEAD)"
-if ($GitCode -ne 0) { Finish "fail" "_Instruments has a detached HEAD - sync paused" }
-if ($branch -ne "main") { Finish "fail" "_Instruments is on branch '$branch', not main - sync paused" }
+if ($GitCode -ne 0) { Finish "fail" "_instruments has a detached HEAD - sync paused" }
+if ($branch -ne "main") { Finish "fail" "_instruments is on branch '$branch', not main - sync paused" }
 $out = Invoke-Git -c http.lowSpeedLimit=1000 -c http.lowSpeedTime=30 fetch --quiet origin
 if ($GitCode -ne 0) { Finish "fail" "cannot reach GitHub: $(Last-Line $out)" }
 

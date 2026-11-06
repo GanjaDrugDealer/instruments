@@ -1,5 +1,5 @@
 """Ставит или обновляет хук SessionStart Claude Code, который сообщает агенту о сбое
-автосинхронизации _Instruments (sync-status.ps1 / sync-status.sh).
+автосинхронизации _instruments (sync-status.ps1 / sync-status.sh).
 Запускают install.ps1 и install.sh. Повторный запуск безопасен: прежняя запись
 этого хука заменяется, остальные настройки и хуки не трогаются.
 

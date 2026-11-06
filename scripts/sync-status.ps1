@@ -1,4 +1,4 @@
-# Claude Code SessionStart hook (set by install.ps1): silent when _Instruments is in sync,
+# Claude Code SessionStart hook (set by install.ps1): silent when _instruments is in sync,
 # otherwise one line for the agent. If the last check is older than 15 min, starts the
 # sync task in the background. Fresh skills reach the next session: the skill list is
 # loaded at session start.
@@ -24,10 +24,10 @@ function Msk($unix) {
 }
 $tell = "Tell the user in one short line, in Russian."
 if ($state -eq "none") {
-  "_Instruments auto-sync has never run on this machine; started it now. $tell"
+  "_instruments auto-sync has never run on this machine; started it now. $tell"
 } elseif ($now - $ts -gt 172800) {
-  "_Instruments: last update check was $(Msk $ts), more than two days ago - the scheduled task seems broken. $tell"
+  "_instruments: last update check was $(Msk $ts), more than two days ago - the scheduled task seems broken. $tell"
 } elseif ($state -ne "ok") {
-  "_Instruments sync ${state}: $msg (checked $(Msk $ts)). $tell"
+  "_instruments sync ${state}: $msg (checked $(Msk $ts)). $tell"
 }
 exit 0

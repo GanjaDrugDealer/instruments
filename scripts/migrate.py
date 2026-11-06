@@ -11,6 +11,7 @@
 Новый переезд - строка в RENAMES / REMOTES с датой. Старые строки не удалять:
 машина, которая долго не включалась, догонит все по порядку.
 """
+import os
 import re
 import subprocess
 import sys
@@ -21,10 +22,11 @@ AI = Path(__file__).resolve().parents[2]          # папка «AI Projects»
 # Папки проектов: (старый путь, новый путь) от AI Projects.
 RENAMES = [
     ("Claude/ai-instruments", "Claude/ai-workshop"),        # 2026-11-06
+    ("_Instruments", "_instruments"),                       # 2026-11-06, только регистр
 ]
 # Адрес origin: папка -> имя репозитория GanjaDrugDealer, если сейчас стоит одно из старых имён.
 REMOTES = {
-    "_Instruments": ("instruments", {"ai-instruments"}),        # 2026-11-06
+    "_instruments": ("instruments", {"ai-instruments"}),        # 2026-11-06
     "Claude/ai-workshop": ("ai-workshop", {"ai-instruments"}),  # 2026-11-06
 }
 
@@ -56,19 +58,36 @@ def move_claude_memory(old, new):
     say(f"Claude memory moved to {claude_slug(new)}")
 
 
+def present(path):
+    """Есть ли элемент ровно с таким именем, с учётом регистра (ФС Windows и Mac регистр не различают)."""
+    try:
+        return path.name in os.listdir(path.parent)
+    except OSError:
+        return False
+
+
 for old_rel, new_rel in RENAMES:
     old, new = AI / old_rel, AI / new_rel
-    if old.exists() and new.exists():
+    if present(old) and present(new):
         problems.append(f"both {old_rel} and {new_rel} exist - merge by hand")
         continue
-    if old.exists():
+    if present(old):
         try:
-            old.rename(new)
+            old.rename(new)       # смена одного регистра на NTFS и APFS тоже идёт одним rename
         except OSError as e:
+            if old_rel.lower() == new_rel.lower():
+                # Только регистр: пути и ссылки и так работают (ФС регистр не различают), поэтому
+                # без тревоги - повторится при следующем прогоне. На Windows папку держат
+                # приложения, следящие за скиллами; при входе в систему они ещё не запущены.
+                say(f"case-only rename {old_rel} -> {new_rel} postponed (in use): {e.strerror}")
+                continue
             problems.append(f"cannot rename {old_rel} -> {new_rel} (folder busy? close sessions/editors there): {e.strerror}")
             continue
+        if not present(new):
+            problems.append(f"renamed {old_rel} -> {new_rel}, but the new name is not visible")
+            continue
         say(f"renamed {old_rel} -> {new_rel}")
-    if new.exists():
+    if present(new) and old_rel.lower() != new_rel.lower():
         move_claude_memory(old, new)
 
 for rel, (target, old_names) in REMOTES.items():

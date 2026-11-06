@@ -3,15 +3,18 @@
 #   skills/shared/*            → ~/.claude/skills/<имя>      (символические ссылки)
 #   skills/vendor/{shared,claude}/* → ~/.claude/skills/<имя> (сторонние, vendor-skills.txt)
 #   project-skills.txt         → ~/.claude/skills/<имя>      (ссылки на скиллы проектов)
-#   rules/CLAUDE.global.md     → ~/.claude/CLAUDE.md         (ссылка)
-#                              → ~/.codex/AGENTS.md, ~/.gemini/GEMINI.md (тот же файл для всех агентов)
+#   правила: scripts/compose-rules.py собирает rules/CLAUDE.global.md + rules/personal/<профиль>.md
+#            + ~/.config/ai-rules/personal.md → ~/.claude/CLAUDE.md, ~/.codex/AGENTS.md, ~/.gemini/GEMINI.md
 #   skills/shared/*, skills/vendor/shared/* → ~/.gemini/config/skills/<имя> (Antigravity IDE; только если ~/.gemini есть)
 #                                           → ~/.gemini/antigravity-cli/skills/<имя> (agy; если есть эта папка)
 #   автосинхронизация: launchd-задача scripts/sync.sh (вход в систему, ночью 04:00 МСК)
 #                      + хук SessionStart Claude (scripts/sync-status.sh) в ~/.claude/settings.json
 # Что уже лежит на месте не ссылкой — переносится в ~/.claude/_backup-<дата>/.
-# Запуск: zsh install.sh   (повторный запуск безопасен)
+# Запуск: zsh install.sh [--profile artem]   (повторный запуск безопасен; профиль запоминается
+#         в ~/.config/ai-rules/profile, задать один раз на машину)
 set -e
+PROFILE_ARG=()
+[[ $1 == --profile && -n $2 ]] && PROFILE_ARG=(--profile "$2")
 HERE=${0:A:h}
 AI=${HERE:h}                          # папка «AI Projects»
 DEST=$HOME/.claude/skills
@@ -41,8 +44,6 @@ echo "Скиллы проектов:"
 grep -v '^\s*#' "$HERE/project-skills.txt" | grep -v '^\s*$' | while read -r rel; do
   link "$AI/$rel" "$DEST/${rel:t}"
 done
-echo "Правила:"
-link "$HERE/rules/CLAUDE.global.md" "$HOME/.claude/CLAUDE.md"
 if [[ -d $HOME/.gemini ]]; then
   echo "Antigravity (общие скиллы):"
   mkdir -p "$HOME/.gemini/config/skills"
@@ -64,12 +65,10 @@ done
 grep -v '^\s*#' "$HERE/project-skills.txt" | grep -v '^\s*$' | while read -r rel; do
   link "$AI/$rel" "$CODEX_DEST/${rel:t}"
 done
-link "$HERE/rules/CLAUDE.global.md" "$HOME/.codex/AGENTS.md"
-# Antigravity: общие правила в ~/.gemini/GEMINI.md — тот же файл.
-if [[ -d $HOME/.gemini ]]; then
-  BAK=$HOME/.gemini/_backup-$(date +%Y%m%d-%H%M%S)
-  link "$HERE/rules/CLAUDE.global.md" "$HOME/.gemini/GEMINI.md"
-fi
+# Правила Claude, Codex и Antigravity: базовые + личные, собирает scripts/compose-rules.py.
+echo "Правила:"
+if [[ -n $PY ]]; then $PY "$HERE/scripts/compose-rules.py" "${PROFILE_ARG[@]}"
+else echo "  ! нет python3 (Command Line Tools) — правила не обновлены"; fi
 # Автосинхронизация (scripts/sync.sh). При запуске из самой синхронизации не трогаем.
 if [[ -z $INSTRUMENTS_SYNC ]]; then
   echo "Автосинхронизация (launchd: вход в систему, ночью в 04:00 МСК):"

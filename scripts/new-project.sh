@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Создание нового проекта из шаблона _Instruments/templates/project (Mac).
+# Создание нового проекта из шаблона _instruments/templates/project (Mac).
 # Пара к new-project.ps1 (Windows): те же аргументы, проверки и коды выхода.
 #   zsh new-project.sh [Claude|Antigravity|Local|Codex] [имя] [--no-prompt]
 #   --no-prompt — для агента: ничего не спрашивать, при ошибке выйти с кодом 2.
@@ -7,8 +7,8 @@
 set -e
 HERE=${0:A:h}
 ROOT=${HERE:h:h}                       # папка «AI Projects»
-TEMPLATE=$ROOT/_Instruments/templates/project
-OVERLAY=$ROOT/_Instruments/templates/project-local
+TEMPLATE=$ROOT/_instruments/templates/project
+OVERLAY=$ROOT/_instruments/templates/project-local
 
 Branch= Name= NoPrompt=
 for a in "$@"; do

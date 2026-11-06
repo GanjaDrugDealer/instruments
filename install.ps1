@@ -2,14 +2,16 @@
 #   skills\shared\*, skills\claude\* -> %USERPROFILE%\.claude\skills\<name>   (directory junctions, no admin needed)
 #   skills\vendor\shared\*, skills\vendor\claude\* -> %USERPROFILE%\.claude\skills\<name>   (third-party, vendor-skills.txt)
 #   project-skills.txt       -> %USERPROFILE%\.claude\skills\<name>   (junctions to project skills)
-#   rules\CLAUDE.global.md   -> %USERPROFILE%\.claude\CLAUDE.md       (copy: file links need admin; auto-sync re-runs install)
-#                            -> %USERPROFILE%\.codex\AGENTS.md, %USERPROFILE%\.gemini\GEMINI.md (same file for all agents)
+#   rules: scripts\compose-rules.py builds rules\CLAUDE.global.md + rules\personal\<profile>.md + ~\.config\ai-rules\personal.md
+#          -> %USERPROFILE%\.claude\CLAUDE.md, %USERPROFILE%\.codex\AGENTS.md, %USERPROFILE%\.gemini\GEMINI.md
 #   skills\shared\*, skills\vendor\shared\* -> %USERPROFILE%\.gemini\config\skills\<name> (Antigravity IDE; only if %USERPROFILE%\.gemini exists)
 #                            -> %USERPROFILE%\.gemini\antigravity-cli\skills\<name> (agy; only if that folder exists)
 #   auto-sync: Task Scheduler task AI-Instruments-Sync -> scripts\sync.ps1 (at logon, daily 04:00 MSK)
 #              + Claude SessionStart hook (scripts\sync-status.ps1) in %USERPROFILE%\.claude\settings.json
 # Existing non-link items are moved to %USERPROFILE%\.claude\_backup-<date>\.
-# Run:  powershell -ExecutionPolicy Bypass -File install.ps1   (safe to re-run)
+# Run:  powershell -ExecutionPolicy Bypass -File install.ps1 [-RulesProfile artem]   (safe to re-run;
+#       the profile is remembered in ~\.config\ai-rules\profile, pass it once per machine)
+param([string]$RulesProfile = "")
 $ErrorActionPreference = "Stop"
 $Here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $AI   = Split-Path -Parent $Here
@@ -48,13 +50,6 @@ Get-Content -Encoding UTF8 (Join-Path $Here "project-skills.txt") | Where-Object
   $src = Join-Path $AI ($_.Trim() -replace "/", "\")
   Link-Dir $src (Join-Path $Dest (Split-Path -Leaf $src))
 }
-Write-Host "Rules:"
-$rules = Join-Path $Claude "CLAUDE.md"
-if ((Test-Path $rules) -and -not (Get-Item $rules -Force).LinkType) {
-  New-Item -ItemType Directory -Force -Path $Bak | Out-Null; Copy-Item $rules $Bak
-}
-Copy-Item (Join-Path $Here "rules\CLAUDE.global.md") $rules -Force
-Write-Host "  CLAUDE.md copied (re-run install.ps1 after git pull)"
 $Gemini = Join-Path $env:USERPROFILE ".gemini"
 if (Test-Path $Gemini) {
   Write-Host "Antigravity (shared skills):"
@@ -87,26 +82,13 @@ Get-Content -Encoding UTF8 (Join-Path $Here "project-skills.txt") | Where-Object
   $src = Join-Path $AI ($_.Trim() -replace "/", "\")
   Link-Dir $src (Join-Path $CodexDest (Split-Path -Leaf $src))
 }
-$CodexRoot = Join-Path $env:USERPROFILE ".codex"
-New-Item -ItemType Directory -Force -Path $CodexRoot | Out-Null
-$CodexRules = Join-Path $CodexRoot "AGENTS.md"
-if (Test-Path $CodexRules) {
-  New-Item -ItemType Directory -Force -Path $Bak | Out-Null
-  Copy-Item -LiteralPath $CodexRules -Destination $Bak
-}
-Copy-Item -LiteralPath (Join-Path $Here "rules\CLAUDE.global.md") -Destination $CodexRules -Force
-Write-Host "  Codex AGENTS.md copied (same rules file as Claude)"
-# Antigravity: global rules in ~/.gemini/GEMINI.md (same rules file).
-if (Test-Path $Gemini) {
-  $GRules = Join-Path $Gemini "GEMINI.md"
-  if (Test-Path $GRules) {
-    $GBak = Join-Path $Gemini ("_backup-" + (Get-Date -Format "yyyyMMdd-HHmmss"))
-    New-Item -ItemType Directory -Force -Path $GBak | Out-Null
-    Copy-Item -LiteralPath $GRules -Destination $GBak
-  }
-  Copy-Item -LiteralPath (Join-Path $Here "rules\CLAUDE.global.md") -Destination $GRules -Force
-  Write-Host "  Antigravity GEMINI.md copied (same rules file as Claude)"
-}
+# Rules for Claude, Codex and Antigravity: base + personal, built by scripts\compose-rules.py.
+Write-Host "Rules:"
+if ($Py) {
+  $compose = Join-Path $Here "scripts\compose-rules.py"
+  if ($RulesProfile) { & $Py.Source -X utf8 $compose --profile $RulesProfile } else { & $Py.Source -X utf8 $compose }
+  if ($LASTEXITCODE -ne 0) { throw "compose-rules.py failed" }
+} else { Write-Host "  ! python.exe not found - rules not updated" }
 # Auto-sync (scripts\sync.ps1). Skipped when install.ps1 is run by the sync itself.
 if (-not $env:INSTRUMENTS_SYNC) {
   Write-Host "Auto-sync (Task Scheduler: at logon, daily 04:00 MSK):"

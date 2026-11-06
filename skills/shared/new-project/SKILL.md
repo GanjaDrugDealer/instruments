@@ -17,13 +17,13 @@ description: Создать новый проект в «AI Projects» из ша
 Mac (`~/Desktop/AI Projects`):
 
 ```bash
-zsh ~/Desktop/"AI Projects"/_Instruments/scripts/new-project.sh Claude <имя> --no-prompt
+zsh ~/Desktop/"AI Projects"/_instruments/scripts/new-project.sh Claude <имя> --no-prompt
 ```
 
 Windows (`C:\AI Projects`):
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File "C:\AI Projects\_Instruments\scripts\new-project.ps1" -Branch Claude -Name <имя> -NoPrompt
+powershell -NoProfile -ExecutionPolicy Bypass -File "C:\AI Projects\_instruments\scripts\new-project.ps1" -Branch Claude -Name <имя> -NoPrompt
 ```
 
 - Код 0 - проект создан. Сообщить путь и следующий шаг: открыть папку

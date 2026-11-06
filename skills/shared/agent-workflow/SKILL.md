@@ -57,17 +57,17 @@ Git для приёмки не обязателен — во многих про
 
 ```bash
 # Mac. Тот, кто выдаёт ТЗ, — ДО выдачи
-python3 -X utf8 ~/Desktop/"AI Projects"/_Instruments/scripts/snapdiff.py snap "<папка проекта>"
+python3 -X utf8 ~/Desktop/"AI Projects"/_instruments/scripts/snapdiff.py snap "<папка проекта>"
 # исполнитель при сдаче и принимающий при приёмке
-python3 -X utf8 ~/Desktop/"AI Projects"/_Instruments/scripts/snapdiff.py diff "<папка проекта>"
+python3 -X utf8 ~/Desktop/"AI Projects"/_instruments/scripts/snapdiff.py diff "<папка проекта>"
 ```
 
 ```cmd
 :: Windows. Тот, кто выдаёт ТЗ, — ДО выдачи
-python -X utf8 "C:\AI Projects\_Instruments\scripts\snapdiff.py" snap "<папка проекта>"
+python -X utf8 "C:\AI Projects\_instruments\scripts\snapdiff.py" snap "<папка проекта>"
 
 :: исполнитель при сдаче и принимающий при приёмке
-python -X utf8 "C:\AI Projects\_Instruments\scripts\snapdiff.py" diff "<папка проекта>"
+python -X utf8 "C:\AI Projects\_instruments\scripts\snapdiff.py" diff "<папка проекта>"
 ```
 
 - Снимок ложится вне проекта: Windows — `%LOCALAPPDATA%\agent-snapshots\<проект>\<дата_время>`,

@@ -3,8 +3,8 @@
 Линтер структуры проектов. НИЧЕГО НЕ МЕНЯЕТ — только показывает расхождения
 со стандартом (скилл project-structure). Решение всегда за человеком.
 
-Запуск:  Windows — python -X utf8 "C:\\AI Projects\\_Instruments\\scripts\\check-structure.py"
-         Mac     — python3 -X utf8 ~/Desktop/"AI Projects"/_Instruments/scripts/check-structure.py
+Запуск:  Windows — python -X utf8 "C:\\AI Projects\\_instruments\\scripts\\check-structure.py"
+         Mac     — python3 -X utf8 ~/Desktop/"AI Projects"/_instruments/scripts/check-structure.py
 """
 import os, re
 from pathlib import Path
@@ -173,5 +173,5 @@ p("Скрипт ничего не изменил. Что чинить — реш
 
 report = "\n".join(out)
 print(report)
-Path(ROOT / "_Instruments" / "scripts" / "check-structure.log").write_text(
+Path(ROOT / "_instruments" / "scripts" / "check-structure.log").write_text(
     report, encoding="utf-8")

@@ -70,7 +70,7 @@ AI Pro, **не по лимитам Claude**. В связке: **Claude — ТЗ 
 
 ```
 export JULES_API_KEY=…                                   # из окружения среды
-S=…/_Instruments/skills/shared/jules/scripts/jules.py
+S=…/_instruments/skills/shared/jules/scripts/jules.py
 python3 -X utf8 $S sources                               # id репозитория: github/<owner>/<repo>
 python3 -X utf8 $S new <owner>/<repo> docs/<…>-tz.md     # → id задачи; PR создастся сам
 python3 -X utf8 $S wait <id>                             # фоном (run_in_background), до 70 мин, раз в минуту

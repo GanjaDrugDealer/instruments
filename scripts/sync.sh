@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Автосинхронизация _Instruments на Mac: fast-forward из origin/main и, если пришли
+# Автосинхронизация _instruments на Mac: fast-forward из origin/main и, если пришли
 # новые коммиты, install.sh. Кто запускает:
 #   - launchd (ставит install.sh) с ключом --scheduled: при входе в систему и каждый час,
 #     но прогон идёт только в 04 часа по МСК (пояс Мака в поездке может быть другим),
@@ -46,6 +46,9 @@ finish() {   # finish <ok|warn|fail> <текст> — переезды, запи
     if (( mcode == 2 )) && [[ $st == ok ]]; then
       st=warn; text="$text; переезд не прошёл: $(print -r -- "$mig" | grep '!' | sed 's/^ *! *//' | paste -sd';' -)"
     fi
+    # Правила — тоже на каждом прогоне: правка ~/.config/ai-rules/personal.md доходит без нового коммита.
+    mig=$(/usr/bin/python3 "$REPO/scripts/compose-rules.py" 2>&1)
+    [[ $mig == *'!'* || $mig == *'rules ->'* ]] && log "правила: ${mig//$'\n'/ |}"
   fi
   [[ -f $STATUS ]] && prev=$(<"$STATUS")
   print -r -- "$st	$(date +%s)	$text" > "$STATUS"
@@ -54,7 +57,7 @@ finish() {   # finish <ok|warn|fail> <текст> — переезды, запи
   if [[ $st != ok && ${prev#*	*	} != "$text" ]]; then
     osascript - "$text" >/dev/null 2>&1 <<'EOF'
 on run argv
-  display notification (item 1 of argv) with title "_Instruments не синхронизирован"
+  display notification (item 1 of argv) with title "_instruments не синхронизирован"
 end run
 EOF
   fi
@@ -63,8 +66,8 @@ EOF
 
 cd "$REPO" 2>/dev/null || finish fail "нет доступа к $REPO (если папка на Рабочем столе — дать /bin/zsh доступ: Настройки → Конфиденциальность → Полный доступ к диску)"
 git rev-parse --git-dir >/dev/null 2>&1 || finish fail "git не читает $REPO (нет git или нет доступа к папке)"
-branch=$(git symbolic-ref --quiet --short HEAD) || finish fail "в _Instruments отсоединённый HEAD — синхронизация остановлена"
-[[ $branch == main ]] || finish fail "_Instruments на ветке $branch, а не main — синхронизация остановлена"
+branch=$(git symbolic-ref --quiet --short HEAD) || finish fail "в _instruments отсоединённый HEAD — синхронизация остановлена"
+[[ $branch == main ]] || finish fail "_instruments на ветке $branch, а не main — синхронизация остановлена"
 err=$(git -c http.lowSpeedLimit=1000 -c http.lowSpeedTime=30 fetch --quiet origin 2>&1) \
   || finish fail "нет связи с GitHub: ${${(f)err}[-1]}"
 

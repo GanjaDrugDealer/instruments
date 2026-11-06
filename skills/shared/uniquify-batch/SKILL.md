@@ -11,7 +11,7 @@ description: Пакетная уникализация папки видео с�
 в `~/.uniquifier/bin`. Запускается headless — без диалогов, всё флагами.
 
 Источник скилла — общая библиотека
-`~/Desktop/AI Projects/_Instruments/skills/shared/uniquify-batch`.
+`~/Desktop/AI Projects/_instruments/skills/shared/uniquify-batch`.
 Править там, в проекты копировать папку целиком (без симлинков).
 
 ## Windows (с 2026-10-04)

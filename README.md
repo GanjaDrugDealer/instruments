@@ -10,9 +10,10 @@
 
 ```
 AI Projects/
-├── _Instruments/            ← этот репозиторий
+├── _instruments/            ← этот репозиторий
 │   ├── skills/shared/       общие скиллы (file-links, watch-tasks, watch-executors, video-frame-sheets, channel-banner, …)
-│   ├── rules/CLAUDE.global.md   глобальные правила (→ ~/.claude/CLAUDE.md)
+│   ├── rules/CLAUDE.global.md   базовые правила для всех людей и машин
+│   ├── rules/personal/<профиль>.md   личные правила человека (artem — Артём)
 │   ├── project-skills.txt   скиллы проектов, нужные и вне их папок
 │   ├── templates/project/   шаблон нового проекта (стандарт — скилл project-structure)
 │   ├── templates/project-local/   оверлей шаблона для закрытых (Local) проектов
@@ -31,19 +32,24 @@ AI Projects/
 ## Новый проект
 
 - Mac: двойной щелчок по `AI Projects/new-project.command` или
-  `zsh _Instruments/scripts/new-project.sh Claude <имя> --no-prompt`.
+  `zsh _instruments/scripts/new-project.sh Claude <имя> --no-prompt`.
 - Windows: `new-project.bat` в корне `C:\AI Projects`.
 - Агенту — скилл `new-project`. Проверка всех проектов на стандарт (ничего не меняет):
-  `python3 -X utf8 _Instruments/scripts/check-structure.py`.
+  `python3 -X utf8 _instruments/scripts/check-structure.py`.
 
 ## Установка / обновление
 
-После `git clone` или `git pull`:
+Один раз на машину после `git clone` (дальше — автосинхронизация):
 
-- macOS: `zsh install.sh` — символические ссылки в `~/.claude/skills/` и на `~/.claude/CLAUDE.md`.
+- macOS: `zsh install.sh [--profile artem]` — символические ссылки в `~/.claude/skills/`.
 - Antigravity: оба установщика подключают общие скиллы и в `~/.gemini/config/skills/` (IDE), если папка `~/.gemini` есть,
   и в `~/.gemini/antigravity-cli/skills/` (CLI `agy`), если есть `~/.gemini/antigravity-cli`.
-- Windows: `powershell -ExecutionPolicy Bypass -File install.ps1` — junction-ссылки на скиллы, `CLAUDE.md` копией.
+- Windows: `powershell -ExecutionPolicy Bypass -File install.ps1 [-RulesProfile artem]` — junction-ссылки на скиллы.
+- Правила собирает `scripts/compose-rules.py` и кладёт одну копию Claude (`~/.claude/CLAUDE.md`), Codex
+  (`~/.codex/AGENTS.md`) и Antigravity (`~/.gemini/GEMINI.md`): базовые `rules/CLAUDE.global.md` + личные
+  `rules/personal/<профиль>.md` (профиль машины — `~/.config/ai-rules/profile`, задаётся ключом установщика один раз)
+  + личные правила машины `~/.config/ai-rules/personal.md` (в git не едут). Уже лежавший там свой файл правил
+  при первой сборке переезжает в `personal.md` — ничего не теряется. Машина без профиля получает базовые + свои.
 
 То, что уже лежало на месте не ссылкой, переносится в `~/.claude/_backup-<дата>/`.
 
@@ -79,7 +85,8 @@ AI Projects/
 - Один скилл — одна копия. Общий скилл живёт здесь, проектный — в `.claude/skills/` своего проекта
   (если нужен и вне проекта — строка в `project-skills.txt`).
 - В файлах проектов общие скиллы называть по имени (`file-links`, `watch-tasks`), без абсолютных путей.
-- Правки глобальных правил — в `rules/CLAUDE.global.md`, не в `~/.claude/CLAUDE.md`.
+- Правки правил — в `rules/CLAUDE.global.md` (для всех) или `rules/personal/<профиль>.md` (про человека),
+  не в собранных `~/.claude/CLAUDE.md` и т. п.
 
 ## Стандарт хранения проектов (Windows-контур, 2026-09-15)
 
@@ -97,8 +104,7 @@ AI Projects/
 Claude-only мост из `skills/claude/` в Codex не устанавливается.
 Используются ссылки на единственный исходник; существующие обычные папки
 сохраняются в `~/.codex/_backup-<дата>/`.
-Общие правила — один файл `rules/CLAUDE.global.md` для всех агентов: он же ставится как
-`~/.codex/AGENTS.md` и `~/.gemini/GEMINI.md` (Antigravity) (Windows: копия, Mac: ссылка). Скиллы доступны со следующего хода; если не появились — перезапустить Codex.
+Правила для Codex и Antigravity — та же сборка, что и для Claude (см. «Установка»). Скиллы доступны со следующего хода; если не появились — перезапустить Codex.
 
 Скилл `git-publish` описывает проверку диффа, коммит, push текущей ветки без force
 и проверку удалённого коммита. Публикация в GitHub не означает деплой сайта.
