@@ -8,6 +8,8 @@
 # Status: %LOCALAPPDATA%\instruments-sync\status  (ok|warn|fail<TAB>unix-time<TAB>text)
 # Log:    %LOCALAPPDATA%\instruments-sync\sync.log (MSK time)
 $ErrorActionPreference = "Continue"
+# Python runs with -X utf8: read its output as UTF-8, not the console code page (CP866).
+[Console]::OutputEncoding = [Text.Encoding]::UTF8
 $env:GIT_TERMINAL_PROMPT = "0"
 $env:GCM_INTERACTIVE = "never"
 $Repo = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
