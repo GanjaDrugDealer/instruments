@@ -114,7 +114,8 @@
 
 ## Где живут общие правила и скиллы
 
-Этот файл — копия `_Instruments/rules/CLAUDE.global.md` (закрытый репозиторий `ai-instruments`). Установщик
+Этот файл — копия `_Instruments/rules/CLAUDE.global.md` (закрытый репозиторий `instruments`; работа над скиллами — в мастерской `Claude/ai-instruments`, репозиторий
+`ai-instruments`). Установщик
 (`install.ps1` — Windows, копией; `install.sh` — Mac, ссылкой) раскладывает его всем агентам: Claude —
 `~/.claude/CLAUDE.md`, Codex — `~/.codex/AGENTS.md`, Antigravity — `~/.gemini/GEMINI.md`. Править только в
 `_Instruments`, потом коммит и пуш. Другая машина подтянет сама: автосинхронизация при входе в систему, ночью
