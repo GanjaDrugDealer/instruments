@@ -17,6 +17,12 @@ AI=${HERE:h}                          # папка «AI Projects»
 DEST=$HOME/.claude/skills
 BAK=$HOME/.claude/_backup-$(date +%Y%m%d-%H%M%S)
 mkdir -p "$DEST"
+PY=""
+xcode-select -p >/dev/null 2>&1 && [[ -x /usr/bin/python3 ]] && PY=/usr/bin/python3
+
+# Разовые переезды (переименованные папки проектов, новые адреса репозиториев): scripts/migrate.py.
+echo "Переезды:"
+if [[ -n $PY ]]; then $PY "$HERE/scripts/migrate.py" || true; else echo "  ! нет python3 (Command Line Tools) — пропуск"; fi
 
 link() {   # link <источник> <куда>
   local src=$1 dst=$2
@@ -90,8 +96,8 @@ EOF
   if launchctl bootstrap "gui/$UID" "$PLIST"; then echo "  задача $LABEL загружена"
   else echo "  ! launchctl bootstrap не прошёл — синхронизация только хуком Claude"; fi
   echo "Хук Claude при старте сессии:"
-  if xcode-select -p >/dev/null 2>&1 && [[ -x /usr/bin/python3 ]]; then
-    /usr/bin/python3 "$HERE/scripts/claude-hook.py" "$HOME/.claude/settings.json" "$HERE/scripts/sync-status.sh"
+  if [[ -n $PY ]]; then
+    $PY "$HERE/scripts/claude-hook.py" "$HOME/.claude/settings.json" "$HERE/scripts/sync-status.sh"
   else
     echo "  ! нет python3 (Command Line Tools) — хук не поставлен"
   fi

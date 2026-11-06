@@ -36,14 +36,23 @@ trap 'rmdir "$LOCK" 2>/dev/null' EXIT
 
 log() { print -r -- "$(TZ=Europe/Moscow date '+%F %T') МСК $*" >> "$LOG" }
 
-finish() {   # finish <ok|warn|fail> <текст> — записать состояние и выйти
-  local prev=""
+finish() {   # finish <ok|warn|fail> <текст> — переезды, записать состояние и выйти
+  local st=$1 text=$2 prev="" mig mcode
+  # Разовые переезды (scripts/migrate.py) — на каждом прогоне: занятая в прошлый раз папка
+  # переименуется в следующий; новые переезды приходят вместе с подтянутыми коммитами.
+  if [[ -f $REPO/scripts/migrate.py ]] && xcode-select -p >/dev/null 2>&1 && [[ -x /usr/bin/python3 ]]; then
+    mig=$(/usr/bin/python3 "$REPO/scripts/migrate.py" 2>&1); mcode=$?
+    [[ -n $mig ]] && log "переезды: ${mig//$'\n'/ |}"
+    if (( mcode == 2 )) && [[ $st == ok ]]; then
+      st=warn; text="$text; переезд не прошёл: $(print -r -- "$mig" | grep '!' | sed 's/^ *! *//' | paste -sd';' -)"
+    fi
+  fi
   [[ -f $STATUS ]] && prev=$(<"$STATUS")
-  print -r -- "$1	$(date +%s)	$2" > "$STATUS"
-  log "$1: $2"
-  # Уведомление — только когда проблема новая, чтобы не сыпать каждые 10 минут.
-  if [[ $1 != ok && ${prev#*	*	} != "$2" ]]; then
-    osascript - "$2" >/dev/null 2>&1 <<'EOF'
+  print -r -- "$st	$(date +%s)	$text" > "$STATUS"
+  log "$st: $text"
+  # Уведомление — только когда проблема новая, чтобы не сыпать при каждом прогоне.
+  if [[ $st != ok && ${prev#*	*	} != "$text" ]]; then
+    osascript - "$text" >/dev/null 2>&1 <<'EOF'
 on run argv
   display notification (item 1 of argv) with title "_Instruments не синхронизирован"
 end run

@@ -27,6 +27,19 @@ function Write-Log($text) {
   [IO.File]::AppendAllText($Log, "$(Get-Msk) MSK $text`r`n", (New-Object Text.UTF8Encoding $false))
 }
 function Finish($state, $text) {
+  # One-time moves (scripts\migrate.py) on every run: a folder that was busy last time is
+  # renamed next time; new moves arrive with the pulled commits.
+  $mig = Join-Path $Repo "scripts\migrate.py"
+  $py = Get-Command python.exe -ErrorAction SilentlyContinue | Where-Object { $_.Source -notlike "*WindowsApps*" } | Select-Object -First 1
+  if ($py -and (Test-Path $mig)) {
+    $out = @(& $py.Source -X utf8 $mig 2>&1 | ForEach-Object { "$_" })
+    $code = $LASTEXITCODE
+    if ($out.Count -gt 0) { Write-Log ("migrate: " + ($out -join " |")) }
+    if ($code -eq 2 -and $state -eq "ok") {
+      $state = "warn"
+      $text = "$text; migration failed: " + ((@($out | Where-Object { $_ -like "*!*" }) | ForEach-Object { $_.Trim().TrimStart("!").Trim() }) -join "; ")
+    }
+  }
   $unix = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
   [IO.File]::WriteAllText($StatusFile, "$state`t$unix`t$text", (New-Object Text.UTF8Encoding $false))
   Write-Log "${state}: $text"

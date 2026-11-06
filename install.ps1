@@ -17,6 +17,11 @@ $Claude = Join-Path $env:USERPROFILE ".claude"
 $Dest = Join-Path $Claude "skills"
 $Bak  = Join-Path $Claude ("_backup-" + (Get-Date -Format "yyyyMMdd-HHmmss"))
 New-Item -ItemType Directory -Force -Path $Dest | Out-Null
+$Py = Get-Command python.exe -ErrorAction SilentlyContinue | Where-Object { $_.Source -notlike "*WindowsApps*" } | Select-Object -First 1
+
+# One-time moves (renamed project folders, new repo URLs): scripts\migrate.py, safe to re-run.
+Write-Host "Migrations:"
+if ($Py) { & $Py.Source -X utf8 (Join-Path $Here "scripts\migrate.py") } else { Write-Host "  ! python.exe not found - skipped" }
 
 function Link-Dir($src, $dst) {
   if (-not (Test-Path $src)) { Write-Host "  missing $src - skip"; return }
@@ -121,9 +126,8 @@ if (-not $env:INSTRUMENTS_SYNC) {
   Start-ScheduledTask -TaskName $TaskName
   Write-Host "  task $TaskName registered and started"
   Write-Host "Claude SessionStart hook:"
-  $py = Get-Command python.exe -ErrorAction SilentlyContinue | Where-Object { $_.Source -notlike "*WindowsApps*" } | Select-Object -First 1
-  if ($py) {
-    & $py.Source -X utf8 (Join-Path $Here "scripts\claude-hook.py") (Join-Path $Claude "settings.json") (Join-Path $Here "scripts\sync-status.ps1")
+  if ($Py) {
+    & $Py.Source -X utf8 (Join-Path $Here "scripts\claude-hook.py") (Join-Path $Claude "settings.json") (Join-Path $Here "scripts\sync-status.ps1")
     if ($LASTEXITCODE -ne 0) { throw "claude-hook.py failed" }
   } else { Write-Host "  ! python.exe not found - hook not set" }
 }

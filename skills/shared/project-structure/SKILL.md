@@ -39,7 +39,7 @@ AI Projects/           Mac: ~/Desktop/AI Projects   Windows: C:\AI Projects
 Раскладка одинаковая на обеих машинах; `_Instruments` — git-репозиторий
 `instruments` (только рабочие скиллы и правила), синхронизация Mac ↔ Windows —
 автосинхронизация (README `_Instruments`). Работа над скиллами — в мастерской
-`Claude/ai-instruments`, репозиторий `ai-instruments`.
+`Claude/ai-workshop`, репозиторий `ai-workshop`.
 Всё на локальном диске (Windows — NTFS, Mac — APFS). Google Диск больше
 не используется: он не NTFS, на нём не работают junction-ссылки и нет
 исключений по маске.
