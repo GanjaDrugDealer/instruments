@@ -92,8 +92,8 @@ AI Projects/
 
 - Правило — скилл `skills/shared/project-structure`; шаблон проекта — `templates/project/`, новый проект —
   `new-project.bat <Claude|Antigravity|Local|Codex> <имя>` в корне AI Projects (`scripts/new-project.ps1`).
-- Скиллы по применимости: `skills/shared/` (все агенты), `skills/claude/` (только Claude), `skills/antigravity/`.
-  `install.ps1` раздаёт `shared` и `claude`.
+- `skills/shared/` — общие скиллы. `skills/claude/` и `skills/codex/` — скиллы для конкретного агента.
+  Сторонние скиллы подключаются по списку выше.
 - Утилиты: `scripts/check-structure.py` (линтер, ничего не меняет), `scripts/snapdiff.py` (дифф для приёмки без git).
 
 ## Codex

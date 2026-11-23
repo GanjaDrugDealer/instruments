@@ -1,11 +1,13 @@
 ---
 name: remotion-markup
 description: Content, animation and effects best practices
-version: 4.0.537
+version: 4.0.546
 ---
 
 This is guidance for writing Remotion React Markup.
 If this is not relevant, load [Remotion Best Practices](../SKILL.md) instead.
+
+`MUST` marks requirements, `SHOULD` recommendations, `MAY` optional actions, and `CAN` capabilities. Apply them to the requested task.
 
 ## Preserve user changes
 
@@ -14,6 +16,13 @@ Users may make edits in the code outside of the conversation.
 If you detect a surprising change made in the meanwhile, don't overwrite it, assume it was intentional or ask for confirmation.
 
 ## General rules
+
+Keep `useCurrentFrame()` in the smallest component that needs it. Extract
+frame-dependent audio volume, titles, and overlays into their own components
+instead of subscribing the whole composition or scene; otherwise unrelated
+descendants re-render on every frame. Preserve the existing frame coordinates
+when extracting across timing boundaries, and keep editable interpolations
+inline on the item's props.
 
 Inside a composition or scene component, get `fps` from `useVideoConfig()` for
 all seconds-to-frames calculations, including timing props such as `from`,
@@ -149,10 +158,6 @@ needs its own editable timeline, or when handling a Studio pre-compose request.
 It covers extraction, registration, inherited styles, and verification in both
 the parent and standalone views.
 
-## Voiceover
-
-See [voiceover.md](voiceover.md) for adding an AI-generated voiceover to Remotion compositions using ElevenLabs TTS.
-
 ## Embedding Videos
 
 See [embedding-videos.md](embedding-videos.md) for advanced knowledge about embedding videos - trimming, volume, speed, looping, pitch.
@@ -165,13 +170,19 @@ See [audio.md](audio.md) for advanced audio features like trimming, volume, spee
 
 See [cropping.md](cropping.md) if needing to crop the visible rectangle of a component.
 
+## Video matting
+
+For background removal, text behind a subject, background blur or replacement,
+and effects applied only to a subject, read [video-matting.md](video-matting.md).
+Generate reusable foreground layers with `@remotion/video-matting` before composing them.
+
 ## Transitions
 
 See [transitions.md](transitions.md) for scene transition patterns.
 
 ## Motion blur
 
-When adding motion blur or a movement trail, read [motion-blur.md](motion-blur.md) for the preferred HTML-in-canvas approach, preview requirements, and alternatives.
+When adding motion blur or a movement trail, read [motion-blur.md](motion-blur.md) for `<HtmlInCanvasMotionBlur>`, transition `motionBlur`, Studio controls, and preview requirements.
 
 ## Visual and pixel effects
 
@@ -207,9 +218,9 @@ built-in effect matches.
 
 Built-in effects from `@remotion/effects`:
 
-- Color and tone: `brightness()`, `colorCorrection()`, `colorKey()`, `contrast()`, `duotone()`, `exposure()`, `grayscale()`, `hue()`, `invert()`, `levels()`, `linearGradient()`, `linearGradientTint()`, `lut()`, `saturation()`, `shadowsHighlights()`, `thermalVision()`, `tint()`, `vibrance()`, `whiteBalance()`.
+- Color and tone: `brightness()`, `colorCorrection()`, `colorKey()`, `contrast()`, `curves()`, `duotone()`, `exposure()`, `grayscale()`, `hue()`, `invert()`, `levels()`, `linearGradient()`, `linearGradientTint()`, `lut()`, `saturation()`, `shadowsHighlights()`, `thermalVision()`, `tint()`, `vibrance()`, `whiteBalance()`.
 - Blur and trails: `blur()`, `lightTrail()`, `linearProgressiveBlur()`, `radialProgressiveBlur()`, `regionBlur()`, `zoomBlur()`.
-- Lighting: `dropShadow()`, `glow()`, `lightLeak()`, `shine()`, `starburst()`, `vignette()`.
+- Lighting: `dropShadow()`, `longShadows()`, `glow()`, `lightLeak()`, `shine()`, `starburst()`, `vignette()`.
 - Distortion and transforms: `barrelDistortion()`, `chromaticAberration()`, `cornerPin()`, `fisheye()`, `mirror()`, `noiseDisplacement()`, `scale()`, `skew()`, `tile()`, `uvTranslate()`, `wave()`, `xyTranslate()`.
 - Textures and patterns: `burlap()`, `checkerboard()`, `contourLines()`, `dotGrid()`, `emboss()`, `flannel()`, `gridlines()`, `halftone()`, `halftoneLinearGradient()`, `lines()`, `liquidContours()`, `noise()`, `paper()`, `pattern()`, `rings()`, `scanlines()`, `speckle()`, `tvSignalOff()`, `waves()`, `whiteNoise()`, `zigzag()`.
 - Edges: `outline()`, `roughenEdges()`, `shrinkwrap()`, `tear()`.
@@ -217,7 +228,9 @@ Built-in effects from `@remotion/effects`:
 
 ## Color correction
 
-Read [color-correction.md](color-correction.md) for how to apply color correction, either using the `colorCorrection()` effect or `lut()` to apply a 3D `.cube` color grade.
+Read [color-correction.md](color-correction.md) for primary adjustments with
+`colorCorrection()`, tonal mapping with `levels()` or `curves()`, their Studio
+editors, and 3D `.cube` color grades with `lut()`.
 
 ## 3D content
 
@@ -311,9 +324,7 @@ This goes for `@remotion/*` packages, `mediabunny`, `@mediabunny/*`, `zod`, and 
 
 ## Visual checks
 
-Open the [Remotion Studio](../remotion-studio/REFERENCE.md) to check visual changes.
-When changing timeline structure, inspect the full composition as well as any
-connected components; verify the visible layers, cut timing, and synchronized
-content.
-
-You can also use [Rendering](../remotion-render/REFERENCE.md) to inspect one or several frames as images.
+Visual changes CAN be inspected in [Remotion Studio](../remotion-studio/REFERENCE.md)
+or [rendered frames](../remotion-render/REFERENCE.md). Comparisons CAN include visible
+layers, cut timing, and synchronized content across the full composition and
+connected components.

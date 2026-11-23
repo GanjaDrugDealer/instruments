@@ -5,13 +5,13 @@ description: "Единое правило хранения AI-проектов �
 
 # Архитектура хранения проектов
 
-Правило общее для всех агентов: Claude Code, Antigravity, Cowork, локальные агенты.
+Правило общее для Claude Code, Cowork, Codex, Antigravity и локальных агентов.
 
 ## Главный принцип: папка проекта самодостаточна
 
 Всё, что нужно агенту для работы над проектом, лежит внутри папки проекта.
 Папку можно открыть в любой агентной системе — новый аккаунт Claude,
-Antigravity, локальная модель на Ollama — и она заработает без донастройки.
+Codex, Antigravity, локальная модель на Ollama — и она заработает без донастройки.
 
 Следствия, которые нарушать нельзя:
 
@@ -30,9 +30,10 @@ Antigravity, локальная модель на Ollama — и она зара�
 
 ```
 AI Projects/           Mac: ~/Desktop/AI Projects   Windows: C:\AI Projects
-├── _instruments/      общая библиотека: skills, agents, docs, templates, scripts
+├── _instruments/      общая библиотека: skills, rules, templates, scripts
 ├── Claude/            проекты, которые ведёт Claude
 ├── Antigravity/       проекты, которые ведёт Antigravity
+├── Codex/             проекты, которые ведёт Codex
 └── Local/             закрытые проекты: только локальная модель, без облака
 ```
 
@@ -67,7 +68,7 @@ AI Projects/           Mac: ~/Desktop/AI Projects   Windows: C:\AI Projects
 Шаблон: `_instruments/templates/project/`.
 Новый проект — скилл `new-project`: Mac — `new-project.command` в корне
 AI Projects (или `_instruments/scripts/new-project.sh`), Windows —
-`new-project.bat <Claude|Antigravity> <имя>`. Ненужные папки из шаблона удалять.
+`new-project.bat <Claude|Antigravity|Local|Codex> <имя>`. Ненужные папки из шаблона удалять.
 
 Папка скиллов проекта ровно одна — `.claude\skills\`. Она названа так потому,
 что это единственное место, которое агент подхватывает из папки проекта сам.
@@ -119,34 +120,36 @@ AI Projects (или `_instruments/scripts/new-project.sh`), Windows —
 
 ## Скиллы: что где
 
-Формат одинаков у Claude и Antigravity: `<имя-скилла>\SKILL.md`, фронтматтер
-с `name` и `description`. Вложенность ровно один уровень — папка с двумя
-уровнями не загрузится ни у кого.
+Claude, Codex и Antigravity используют `<имя-скилла>\SKILL.md` с полями
+`name` и `description`. В каталоге проектных скиллов держи папку каждого
+скилла на первом уровне. Скрипты и справочники могут лежать внутри неё.
 
 Библиотека делится по применимости:
 
 ```
 _instruments\skills\
-├── shared\        работают у обоих агентов
+├── shared\        общие скиллы
 ├── claude\        только Claude Code / Cowork
-└── antigravity\   только Antigravity
+├── codex\         только Codex
+└── vendor\        сторонние скиллы, список в vendor-skills.txt
 ```
 
 - Нужно одному проекту — `<project>\.claude\skills\`. Едет вместе с папкой.
 - Переносимое знание, нужное везде — `_instruments/skills/shared/`,
   раздаётся ссылками в профиль пользователя установщиком: Mac — `zsh install.sh`
-  (символические ссылки в `~/.claude/skills/`, `~/.gemini/config/skills/` — Antigravity IDE,
+  (символические ссылки в `~/.claude/skills/`, `~/.agents/skills/` — Codex, `~/.gemini/config/skills/` — Antigravity IDE,
   `~/.gemini/antigravity-cli/skills/` — CLI `agy`),
   Windows — `install.ps1` (junction-ссылки, как ниже). Руками на Windows:
 
 ```cmd
 mklink /J "C:\Users\<user>\.claude\skills\<имя>"        "C:\AI Projects\_instruments\skills\shared\<имя>"
+mklink /J "C:\Users\<user>\.agents\skills\<имя>"        "C:\AI Projects\_instruments\skills\shared\<имя>"
 mklink /J "C:\Users\<user>\.gemini\config\skills\<имя>" "C:\AI Projects\_instruments\skills\shared\<имя>"
 ```
 
 - Инструкции про инструменты конкретного агента (Desktop Commander, device_bash,
   тулзы Antigravity) в `shared\` НЕ класть: чужой агент прочитает и начнёт
-  звать несуществующие инструменты. Им место в `claude\` или `antigravity\`.
+  звать несуществующие инструменты. Для Claude и Codex есть свои каталоги, другие инструкции держи рядом с проектом, который их использует.
 
 Junction (Windows) и символическая ссылка (Mac) — не копия и не ярлык,
 а запись «эта папка на самом деле вон там». Junction создаётся только на
@@ -158,12 +161,13 @@ Junction (Windows) и символическая ссылка (Mac) — не к�
 - Claude Code или новый аккаунт Claude: открыть папку как рабочую директорию.
   `CLAUDE.md` и `.claude\skills\` подхватятся сами.
 - Antigravity: открыть папку как workspace, точка входа — `AGENTS.md`.
+- Codex: открыть папку проекта и следовать `AGENTS.md`. Там указан путь к проектным скиллам в `.claude\skills\`.
 - Локальный агент (Ollama и подобные): `CLAUDE.md` как системный контекст,
   `.claude\skills\*\SKILL.md` как дополнительные инструкции.
 
 ## Работа двумя агентами
 
-Деление `Claude\` / `Antigravity\` означает, **кто ведёт проект**, а не кто
+Деление `Claude\` / `Antigravity\` / `Codex\` означает, **кто ведёт проект**, а не кто
 единственный имеет к нему доступ. Один проект — одна папка; второй агент
 открывает ту же папку. Второго клона и второго рабочего дерева не заводить:
 работа идёт поочерёдно, коллизий нет.
@@ -252,7 +256,7 @@ python -X utf8 "C:\AI Projects\_instruments\scripts\check-structure.py"
 
 ## Как изменения доходят до агентов
 
-- **Скилл в библиотеке** → Claude Code и Antigravity читают новую версию сами,
+- **Скилл в библиотеке** → Claude Code, Codex и Antigravity читают новую версию сами,
   через junction / симлинк, со следующего запуска. Новый скилл — запустить
   установщик (`install.sh` / `install.ps1`), иначе ссылки на него не будет.
 - **Аккаунтная копия в Cowork** → только вручную, карточкой скилла.

@@ -8,6 +8,7 @@ description: Создать новый проект в «AI Projects» из ша
 Аргументы: `[Claude|Antigravity|Local|Codex] <имя-папки>`. Ветка по умолчанию - Claude:
 это папка того агента, кто ведёт проект, а не того, кто его создаёт.
 Для Codex выбрать ветку `Codex`: проект появится в `AI Projects/Codex/<имя>`.
+В командах ниже подставить фактическую ветку и имя проекта. Если ветку не задали, подставить `Claude`.
 Нет имени - спросить одним вопросом и больше ничего не делать.
 Имя: строчная латиница, цифры, дефис между словами (`logo-script`).
 
@@ -17,13 +18,13 @@ description: Создать новый проект в «AI Projects» из ша
 Mac (`~/Desktop/AI Projects`):
 
 ```bash
-zsh ~/Desktop/"AI Projects"/_instruments/scripts/new-project.sh Claude <имя> --no-prompt
+zsh ~/Desktop/"AI Projects"/_instruments/scripts/new-project.sh <ветка> <имя> --no-prompt
 ```
 
 Windows (`C:\AI Projects`):
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File "C:\AI Projects\_instruments\scripts\new-project.ps1" -Branch Claude -Name <имя> -NoPrompt
+powershell -NoProfile -ExecutionPolicy Bypass -File "C:\AI Projects\_instruments\scripts\new-project.ps1" -Branch <ветка> -Name <имя> -NoPrompt
 ```
 
 - Код 0 - проект создан. Сообщить путь и следующий шаг: открыть папку
