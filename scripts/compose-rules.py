@@ -5,7 +5,8 @@
   2. личные правила из репозитория - rules/personal/<профиль>.md, профиль машины - одно слово
      в ~/.config/ai-rules/profile (нет файла - этой части нет);
   3. личные правила этой машины - ~/.config/ai-rules/personal.md (в git не едут).
-Куда: ~/.claude/CLAUDE.md, ~/.codex/AGENTS.md, ~/.gemini/GEMINI.md (последнее - если есть ~/.gemini).
+Куда: ~/.claude/CLAUDE.md, ~/.codex/AGENTS.md, ~/.gemini/GEMINI.md (последнее - если есть ~/.gemini),
+~/.agents/AGENTS.md (оттуда её читает dsh - см. rules/CLAUDE.global.md, "Где живут общие правила").
 
 Чужой файл правил (написанный руками, не этой сборкой) не теряется: при первой сборке он
 переезжает в ~/.config/ai-rules/personal.md, если того ещё нет, иначе - в резервную копию.
@@ -55,7 +56,8 @@ if profile:
     else:
         say(f"! no rules/personal/{profile}.md - personal part skipped")
 
-targets = [HOME / ".claude" / "CLAUDE.md", HOME / ".codex" / "AGENTS.md"]
+targets = [HOME / ".claude" / "CLAUDE.md", HOME / ".codex" / "AGENTS.md",
+           HOME / ".agents" / "AGENTS.md"]           # .agents - общий корень агентов, его читает dsh
 if (HOME / ".gemini").is_dir():
     targets.append(HOME / ".gemini" / "GEMINI.md")
 
