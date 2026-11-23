@@ -1,10 +1,13 @@
 """List DeepSeek models or send one chat request."""
 
 import argparse
+import base64
+import binascii
+import ctypes
+import ctypes.wintypes
 import json
 import os
 from pathlib import Path
-import subprocess
 import sys
 from urllib.error import HTTPError, URLError
 from urllib.request import HTTPRedirectHandler, Request, build_opener
@@ -19,32 +22,82 @@ class NoRedirect(HTTPRedirectHandler):
         return None
 
 
+class DataBlob(ctypes.Structure):
+    _fields_ = [
+        ("cbData", ctypes.wintypes.DWORD),
+        ("pbData", ctypes.POINTER(ctypes.c_char)),
+    ]
+
+
+def dpapi_unprotect(blob):
+    """Decrypt a DPAPI blob for the current Windows user, without spawning processes."""
+    buffer = ctypes.create_string_buffer(bytes(blob), len(blob))
+    source = DataBlob(len(blob), ctypes.cast(buffer, ctypes.POINTER(ctypes.c_char)))
+    target = DataBlob()
+    if not ctypes.windll.crypt32.CryptUnprotectData(
+        ctypes.byref(source), None, None, None, None, 0, ctypes.byref(target)
+    ):
+        raise OSError("CryptUnprotectData failed")
+    try:
+        return ctypes.string_at(target.pbData, target.cbData)
+    finally:
+        ctypes.windll.kernel32.LocalFree(target.pbData)
+
+
+def read_saved_key(path):
+    """Read a key saved by save-key.ps1 (Export-Clixml of a SecureString)."""
+    raw = path.read_bytes()
+    text = ""
+    for encoding in ("utf-16", "utf-8-sig", "utf-8"):
+        try:
+            candidate = raw.decode(encoding)
+        except UnicodeError:
+            continue
+        if "<SS>" in candidate:
+            text = candidate
+            break
+    if not text:
+        return ""
+    start = text.find("<SS>") + len("<SS>")
+    blob_text = text[start : text.find("</SS>", start)].strip()
+    if not blob_text:
+        return ""
+    try:
+        blob = bytes.fromhex(blob_text)
+    except ValueError:
+        try:
+            blob = base64.b64decode(blob_text, validate=True)
+        except (binascii.Error, ValueError):
+            return ""
+    return dpapi_unprotect(blob).decode("utf-16-le", "replace")
+
+
+def key_file_candidates():
+    """Plaintext key files that survive any session, shell or launcher."""
+    explicit = os.environ.get("DEEPSEEK_API_KEY_FILE", "").strip()
+    if explicit:
+        yield Path(explicit)
+    yield Path.home() / ".config" / "deepseek" / "api-key.txt"
+
+
 def read_windows_key():
     local_app_data = os.environ.get("LOCALAPPDATA")
-    if not local_app_data or not (Path(local_app_data) / "DeepSeek" / "api-key.xml").is_file():
-        return ""
-
-    command = (
-        "$ErrorActionPreference = 'Stop'\n"
-        "$path = Join-Path $env:LOCALAPPDATA 'DeepSeek\\api-key.xml'\n"
-        "$secret = Import-Clixml -LiteralPath $path\n"
-        "if ($secret -isnot [securestring]) { exit 1 }\n"
-        "[Console]::Write([System.Net.NetworkCredential]::new('', $secret).Password)\n"
-    )
-    try:
-        result = subprocess.run(
-            ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", command],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-            text=True,
-            encoding="utf-8",
-            check=True,
-            timeout=10,
-            creationflags=subprocess.CREATE_NO_WINDOW,
-        )
-    except (OSError, subprocess.SubprocessError, UnicodeError):
-        raise RuntimeError("Cannot open the saved DeepSeek key under this Windows user.") from None
-    return result.stdout.strip()
+    if local_app_data:
+        saved = Path(local_app_data) / "DeepSeek" / "api-key.xml"
+        if saved.is_file():
+            try:
+                key = read_saved_key(saved)
+            except (OSError, UnicodeError, ValueError):
+                key = ""
+            if key:
+                return key
+    for candidate in key_file_candidates():
+        if candidate.is_file():
+            try:
+                return candidate.read_text(encoding="utf-8-sig").strip()
+            except OSError:
+                continue
+    return ""
 
 
 def read_api_key():
@@ -52,7 +105,10 @@ def read_api_key():
     if not key and os.name == "nt":
         key = read_windows_key()
     if not key:
-        raise RuntimeError("Set DEEPSEEK_API_KEY or use a saved Windows key.")
+        raise RuntimeError(
+            "Set DEEPSEEK_API_KEY, save the key with scripts/save-key.ps1, "
+            "or put it in ~/.config/deepseek/api-key.txt."
+        )
     if not key.isascii() or not key.isprintable() or any(char.isspace() for char in key):
         raise RuntimeError("DeepSeek API key has invalid characters.")
     return key
