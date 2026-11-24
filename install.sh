@@ -7,7 +7,7 @@
 #            + ~/.config/ai-rules/personal.md → ~/.claude/CLAUDE.md, ~/.codex/AGENTS.md, ~/.gemini/GEMINI.md
 #   skills/shared/*, skills/vendor/shared/* → ~/.gemini/config/skills/<имя> (Antigravity IDE; только если ~/.gemini есть)
 #                                           → ~/.gemini/antigravity-cli/skills/<имя> (agy; если есть эта папка)
-#   автосинхронизация: launchd-задача scripts/sync.sh (вход в систему, ночью 04:00 МСК)
+#   автосинхронизация: launchd-задача scripts/sync.sh (вход в систему, ночью 04:00 (Стамбул))
 #                      + хук SessionStart Claude (scripts/sync-status.sh) в ~/.claude/settings.json
 # Что уже лежит на месте не ссылкой — переносится в ~/.claude/_backup-<дата>/.
 # Запуск: zsh install.sh [--profile artem]   (повторный запуск безопасен; профиль запоминается
@@ -71,7 +71,7 @@ if [[ -n $PY ]]; then $PY "$HERE/scripts/compose-rules.py" "${PROFILE_ARG[@]}"
 else echo "  ! нет python3 (Command Line Tools) — правила не обновлены"; fi
 # Автосинхронизация (scripts/sync.sh). При запуске из самой синхронизации не трогаем.
 if [[ -z $INSTRUMENTS_SYNC ]]; then
-  echo "Автосинхронизация (launchd: вход в систему, ночью в 04:00 МСК):"
+  echo "Автосинхронизация (launchd: вход в систему, ночью в 04:00 (Стамбул)):"
   LABEL=com.ganjadrugdealer.instruments-sync
   PLIST=$HOME/Library/LaunchAgents/$LABEL.plist
   SYNC_STATE=$HOME/.local/state/instruments-sync

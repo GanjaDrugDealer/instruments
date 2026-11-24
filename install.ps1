@@ -6,7 +6,7 @@
 #          -> %USERPROFILE%\.claude\CLAUDE.md, %USERPROFILE%\.codex\AGENTS.md, %USERPROFILE%\.gemini\GEMINI.md
 #   skills\shared\*, skills\vendor\shared\* -> %USERPROFILE%\.gemini\config\skills\<name> (Antigravity IDE; only if %USERPROFILE%\.gemini exists)
 #                            -> %USERPROFILE%\.gemini\antigravity-cli\skills\<name> (agy; only if that folder exists)
-#   auto-sync: Task Scheduler task AI-Instruments-Sync -> scripts\sync.ps1 (at logon, daily 04:00 MSK)
+#   auto-sync: Task Scheduler task AI-Instruments-Sync -> scripts\sync.ps1 (at logon, daily 04:00 (Стамбул))
 #              + Claude SessionStart hook (scripts\sync-status.ps1) in %USERPROFILE%\.claude\settings.json
 # Existing non-link items are moved to %USERPROFILE%\.claude\_backup-<date>\.
 # Run:  powershell -ExecutionPolicy Bypass -File install.ps1 [-RulesProfile artem]   (safe to re-run;
@@ -91,15 +91,20 @@ if ($Py) {
 } else { Write-Host "  ! python.exe not found - rules not updated" }
 # Auto-sync (scripts\sync.ps1). Skipped when install.ps1 is run by the sync itself.
 if (-not $env:INSTRUMENTS_SYNC) {
-  Write-Host "Auto-sync (Task Scheduler: at logon, daily 04:00 MSK):"
+  Write-Host "Auto-sync (Task Scheduler: at logon, daily 04:00 (Стамбул)):"
   $TaskName = "AI-Instruments-Sync"
   $ps = Join-Path $env:WINDIR "System32\WindowsPowerShell\v1.0\powershell.exe"
   $syncArgs = "--headless `"$ps`" -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$Here\scripts\sync.ps1`""
   $action = New-ScheduledTaskAction -Execute "conhost.exe" -Argument $syncArgs
   $atLogon = New-ScheduledTaskTrigger -AtLogOn -User "$env:USERDOMAIN\$env:USERNAME"
-  $nightly = New-ScheduledTaskTrigger -Daily -At "04:00"
-  # Fixed +03:00 offset: 04:00 Moscow time whatever the PC time zone is.
-  $nightly.StartBoundary = (Get-Date).AddDays(1).ToString("yyyy-MM-dd") + "T04:00:00+03:00"
+  # Windows time-zone ID for Europe/Istanbul. Include its offset in StartBoundary.
+  $istanbul = [TimeZoneInfo]::FindSystemTimeZoneById("Turkey Standard Time")
+  $nowInIstanbul = [TimeZoneInfo]::ConvertTime([DateTimeOffset]::UtcNow, $istanbul)
+  $startInIstanbul = $nowInIstanbul.Date.AddHours(4)
+  if ($nowInIstanbul.DateTime -ge $startInIstanbul) { $startInIstanbul = $startInIstanbul.AddDays(1) }
+  $start = [DateTimeOffset]::new($startInIstanbul, $istanbul.GetUtcOffset($startInIstanbul))
+  $nightly = New-ScheduledTaskTrigger -Daily -At $startInIstanbul
+  $nightly.StartBoundary = $start.ToString("yyyy-MM-dd'T'HH:mm:sszzz", [Globalization.CultureInfo]::InvariantCulture)
   $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
     -ExecutionTimeLimit (New-TimeSpan -Minutes 10) -MultipleInstances IgnoreNew
   $principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Limited

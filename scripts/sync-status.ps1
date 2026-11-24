@@ -1,4 +1,4 @@
-# Claude Code SessionStart hook (set by install.ps1): silent when _instruments is in sync,
+﻿# Claude Code SessionStart hook (set by install.ps1): silent when _instruments is in sync,
 # otherwise one line for the agent. If the last check is older than 15 min, starts the
 # sync task in the background. Fresh skills reach the next session: the skill list is
 # loaded at session start.
@@ -18,16 +18,16 @@ if ($now - $ts -gt 900) {
   }
 }
 
-function Msk($unix) {
+function Get-IstanbulTime($unix) {
   $utc = [DateTimeOffset]::FromUnixTimeSeconds($unix).UtcDateTime
-  [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId($utc, "Russian Standard Time").ToString("dd.MM HH:mm") + " MSK"
+  [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId($utc, "Turkey Standard Time").ToString("dd.MM HH:mm") + " Стамбул"
 }
 $tell = "Tell the user in one short line, in Russian."
 if ($state -eq "none") {
   "_instruments auto-sync has never run on this machine; started it now. $tell"
 } elseif ($now - $ts -gt 172800) {
-  "_instruments: last update check was $(Msk $ts), more than two days ago - the scheduled task seems broken. $tell"
+  "_instruments: last update check was $(Get-IstanbulTime $ts), more than two days ago - the scheduled task seems broken. $tell"
 } elseif ($state -ne "ok") {
-  "_instruments sync ${state}: $msg (checked $(Msk $ts)). $tell"
+  "_instruments sync ${state}: $msg (checked $(Get-IstanbulTime $ts)). $tell"
 }
 exit 0

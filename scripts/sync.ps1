@@ -1,12 +1,12 @@
-# Auto-sync of _instruments on Windows: fast-forward from origin/main, then install.ps1
+﻿# Auto-sync of _instruments on Windows: fast-forward from origin/main, then install.ps1
 # if new commits arrived. Started by:
 #   - Task Scheduler task "AI-Instruments-Sync" (registered by install.ps1): at logon and
-#     daily at 04:00 MSK (if the PC was off, at the next start);
+#     daily at 04:00 (Стамбул) (if the PC was off, at the next start);
 #   - the Claude SessionStart hook (sync-status.ps1) when the last check is older than 15 min.
 # Never forces anything: on local edits, unpushed commits or another branch it only
 # writes the reason to the status file.
 # Status: %LOCALAPPDATA%\instruments-sync\status  (ok|warn|fail<TAB>unix-time<TAB>text)
-# Log:    %LOCALAPPDATA%\instruments-sync\sync.log (MSK time)
+# Log:    %LOCALAPPDATA%\instruments-sync\sync.log (Стамбул)
 $ErrorActionPreference = "Continue"
 # Python runs with -X utf8: read its output as UTF-8, not the console code page (CP866).
 [Console]::OutputEncoding = [Text.Encoding]::UTF8
@@ -22,11 +22,11 @@ $Log = Join-Path $State "sync.log"
 try { $LockStream = [System.IO.File]::Open((Join-Path $State "lock"), "OpenOrCreate", "ReadWrite", "None") } catch { exit 0 }
 if ((Test-Path $Log) -and (Get-Item $Log).Length -gt 1MB) { Move-Item $Log "$Log.old" -Force }
 
-function Get-Msk {
-  [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow, "Russian Standard Time").ToString("yyyy-MM-dd HH:mm:ss")
+function Get-IstanbulTime {
+  [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow, "Turkey Standard Time").ToString("yyyy-MM-dd HH:mm:ss")
 }
 function Write-Log($text) {
-  [IO.File]::AppendAllText($Log, "$(Get-Msk) MSK $text`r`n", (New-Object Text.UTF8Encoding $false))
+  [IO.File]::AppendAllText($Log, "$(Get-IstanbulTime) Стамбул $text`r`n", (New-Object Text.UTF8Encoding $false))
 }
 function Finish($state, $text) {
   # One-time moves (scripts\migrate.py) on every run: a folder that was busy last time is

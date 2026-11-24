@@ -10,8 +10,7 @@ description: ГЛАВНОЕ правило для всех проектов и �
 | Где | Как |
 |---|---|
 | Mac | `[STATE.md](/Users/artemganza/Desktop/AI%20Projects/Claude/youtube-shorts-cs/STATE.md)` |
-| Windows, Claude | `[STATE.md](file:///C:/AI%20Projects/Claude/ai-workshop/STATE.md)` |
-| Windows, Codex | `[STATE.md](/C:/AI%20Projects/Claude/ai-workshop/STATE.md)` |
+| Windows | `[STATE.md](file:///C:/AI%20Projects/Claude/ai-workshop/STATE.md)` |
 
 На Windows используй прямые слэши и оставляй кириллицу как есть.
 

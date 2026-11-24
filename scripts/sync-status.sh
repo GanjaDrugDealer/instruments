@@ -9,15 +9,16 @@ STATUS=$HOME/.local/state/instruments-sync/status
 now=$(date +%s)
 state=none; ts=0; msg=""
 [[ -f $STATUS ]] && IFS=$'\t' read -r state ts msg < "$STATUS"
+[[ $ts == <-> ]] || { state=none; ts=0; }
 (( now - ts > 900 )) && { zsh "$HERE/sync.sh" </dev/null >/dev/null 2>&1 &! }
 
-msk() { TZ=Europe/Moscow date -r "$1" '+%d.%m %H:%M МСК' }
+istanbul() { TZ=Europe/Istanbul date -r "$1" '+%d.%m %H:%M Стамбул' }
 tell="Скажи пользователю об этом одной короткой строкой."
 if [[ $state == none ]]; then
   print "_instruments: автосинхронизация на этой машине ещё не отрабатывала, запущена сейчас. $tell"
 elif (( now - ts > 172800 )); then
-  print "_instruments: последняя проверка обновлений $(msk $ts), больше двух суток назад — фоновая задача, похоже, не работает. $tell"
+  print "_instruments: последняя проверка обновлений $(istanbul $ts), больше двух суток назад — фоновая задача, похоже, не работает. $tell"
 elif [[ $state != ok ]]; then
-  print "_instruments: $msg (проверено $(msk $ts)). $tell"
+  print "_instruments: $msg (проверено $(istanbul $ts)). $tell"
 fi
 exit 0
