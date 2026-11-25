@@ -67,7 +67,9 @@ grep -v '^\s*#' "$HERE/project-skills.txt" | grep -v '^\s*$' | while read -r rel
 done
 # Правила Claude, Codex и Antigravity: базовые + личные, собирает scripts/compose-rules.py.
 echo "Правила:"
-if [[ -n $PY ]]; then $PY "$HERE/scripts/compose-rules.py" "${PROFILE_ARG[@]}"
+if [[ -n $PY ]]; then
+  $PY "$HERE/scripts/rules-hook.py" --install
+  $PY "$HERE/scripts/compose-rules.py" "${PROFILE_ARG[@]}"
 else echo "  ! нет python3 (Command Line Tools) — правила не обновлены"; fi
 # Автосинхронизация (scripts/sync.sh). При запуске из самой синхронизации не трогаем.
 if [[ -z $INSTRUMENTS_SYNC ]]; then

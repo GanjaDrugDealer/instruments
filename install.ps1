@@ -85,6 +85,8 @@ Get-Content -Encoding UTF8 (Join-Path $Here "project-skills.txt") | Where-Object
 # Rules for Claude, Codex and Antigravity: base + personal, built by scripts\compose-rules.py.
 Write-Host "Rules:"
 if ($Py) {
+  & $Py.Source -X utf8 (Join-Path $Here "scripts\rules-hook.py") --install
+  if ($LASTEXITCODE -ne 0) { throw "pre-commit setup failed" }
   $compose = Join-Path $Here "scripts\compose-rules.py"
   if ($RulesProfile) { & $Py.Source -X utf8 $compose --profile $RulesProfile } else { & $Py.Source -X utf8 $compose }
   if ($LASTEXITCODE -ne 0) { throw "compose-rules.py failed" }
