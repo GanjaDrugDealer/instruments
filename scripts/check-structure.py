@@ -46,6 +46,9 @@ def check(prj: Path, *, is_local: bool = False):
     for f in MUST_FILES:
         if not (prj / f).exists():
             issues.append(f"нет {f}")
+    claude_md = prj / "CLAUDE.md"
+    if claude_md.is_file() and claude_md.stat().st_size > 12 * 1024:
+        hints.append("CLAUDE.md больше 12 КиБ: проверьте, какие разделы относятся к отдельным темам и нужны в справочниках")
     if not (prj / ".claude" / "skills").exists():
         issues.append("нет .claude/skills/")
 
@@ -74,7 +77,6 @@ def check(prj: Path, *, is_local: bool = False):
     # --- Проверки, специфичные для Local ---
     if is_local:
         # Маркер ЗАКРЫТЫЙ ПРОЕКТ в первых 3 строках CLAUDE.md
-        claude_md = prj / "CLAUDE.md"
         if claude_md.exists():
             try:
                 head = claude_md.read_text(encoding="utf-8", errors="ignore").splitlines()[:3]
