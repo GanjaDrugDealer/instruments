@@ -1,6 +1,6 @@
 #!/bin/zsh
-# Автосинхронизация _instruments на Mac: fast-forward из origin/main и, если пришли
-# новые коммиты, install.sh. Кто запускает:
+# Автосинхронизация _instruments на Mac: fast-forward из origin/main и install.sh,
+# если текущий коммит ещё не применён. Кто запускает:
 #   - launchd (ставит install.sh) с ключом --scheduled: при входе в систему и каждый час,
 #     но прогон идёт только в 04:00 (Стамбул) (пояс Мака в поездке может быть другим),
 #     после загрузки системы или если последней проверке больше суток (Мак спал ночью);
@@ -15,6 +15,7 @@ HERE=${0:A:h}
 REPO=${HERE:h}
 STATE=$HOME/.local/state/instruments-sync
 STATUS=$STATE/status
+APPLIED=$STATE/applied-commit
 LOG=$STATE/sync.log
 LOCK=$STATE/lock
 mkdir -p "$STATE"
@@ -77,17 +78,26 @@ dirty_list=$(print -r -- "$dirty" | head -3 | cut -c4- | paste -sd, - | sed 's/,
 ahead=$(git rev-list --count origin/main..HEAD)
 behind=$(git rev-list --count HEAD..origin/main)
 
-if (( behind == 0 )); then
+if (( behind > 0 )); then
+  (( ahead > 0 )) && finish fail "ветки разошлись: здесь $ahead своих коммитов, в GitHub $behind новых — нужен ручной разбор"
+  [[ -n $dirty ]] && finish fail "в GitHub $behind новых коммитов, но здесь незакоммиченные правки: $dirty_list"
+
+  old=$(git rev-parse --short HEAD)
+  err=$(git merge --ff-only --quiet origin/main 2>&1) || finish fail "fast-forward не прошёл: ${${(f)err}[-1]}"
+  log "подтянуто $old..$(git rev-parse --short HEAD)"
+else
   (( ahead > 0 )) && finish warn "$ahead коммит(ов) не отправлено в GitHub"
   [[ -n $dirty ]] && finish warn "незакоммиченные правки: $dirty_list"
-  finish ok "актуально ($(git rev-parse --short HEAD))"
 fi
-(( ahead > 0 )) && finish fail "ветки разошлись: здесь $ahead своих коммитов, в GitHub $behind новых — нужен ручной разбор"
-[[ -n $dirty ]] && finish fail "в GitHub $behind новых коммитов, но здесь незакоммиченные правки: $dirty_list"
 
-old=$(git rev-parse --short HEAD)
-err=$(git merge --ff-only --quiet origin/main 2>&1) || finish fail "fast-forward не прошёл: ${${(f)err}[-1]}"
+commit=$(git rev-parse --verify HEAD) || finish fail "не удалось определить текущий коммит"
 new=$(git rev-parse --short HEAD)
-log "подтянуто $old..$new"
+applied=""
+[[ -f $APPLIED ]] && applied=$(<"$APPLIED")
+[[ $applied == "$commit" ]] && finish ok "актуально ($new)"
+
+log "применяю $new"
 INSTRUMENTS_SYNC=1 zsh "$REPO/install.sh" >> "$LOG" 2>&1 || finish fail "install.sh упал, журнал: $LOG"
-finish ok "обновлено $old → $new ($behind коммит(ов))"
+[[ -f $APPLIED && $(<"$APPLIED") == "$commit" ]] || finish fail "install.sh не подтвердил применение $new, журнал: $LOG"
+(( behind > 0 )) && finish ok "обновлено $old → $new ($behind коммит(ов))"
+finish ok "применено ($new)"

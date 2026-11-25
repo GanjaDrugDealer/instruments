@@ -17,6 +17,8 @@ PROFILE_ARG=()
 [[ $1 == --profile && -n $2 ]] && PROFILE_ARG=(--profile "$2")
 HERE=${0:A:h}
 AI=${HERE:h}                          # папка «AI Projects»
+SYNC_STATE=$HOME/.local/state/instruments-sync
+commit=$(git -C "$HERE" rev-parse --verify HEAD 2>/dev/null) || commit=""
 DEST=$HOME/.claude/skills
 BAK=$HOME/.claude/_backup-$(date +%Y%m%d-%H%M%S)
 mkdir -p "$DEST"
@@ -70,13 +72,17 @@ echo "Правила:"
 if [[ -n $PY ]]; then
   $PY "$HERE/scripts/rules-hook.py" --install
   $PY "$HERE/scripts/compose-rules.py" "${PROFILE_ARG[@]}"
+  # Записываем только после установки скиллов и сборки правил, до RunAtLoad.
+  if [[ -n $commit ]]; then
+    mkdir -p "$SYNC_STATE"
+    print -r -- "$commit" > "$SYNC_STATE/applied-commit"
+  fi
 else echo "  ! нет python3 (Command Line Tools) — правила не обновлены"; fi
 # Автосинхронизация (scripts/sync.sh). При запуске из самой синхронизации не трогаем.
 if [[ -z $INSTRUMENTS_SYNC ]]; then
   echo "Автосинхронизация (launchd: вход в систему, ночью в 04:00 (Стамбул)):"
   LABEL=com.ganjadrugdealer.instruments-sync
   PLIST=$HOME/Library/LaunchAgents/$LABEL.plist
-  SYNC_STATE=$HOME/.local/state/instruments-sync
   mkdir -p "${PLIST:h}" "$SYNC_STATE"
   cat > "$PLIST" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
