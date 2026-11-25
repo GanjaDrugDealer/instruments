@@ -46,10 +46,16 @@ AI Projects/
   и в `~/.gemini/antigravity-cli/skills/` (CLI `agy`), если есть `~/.gemini/antigravity-cli`.
 - Windows: `powershell -ExecutionPolicy Bypass -File install.ps1 [-RulesProfile artem]` — junction-ссылки на скиллы.
 - Правила собирает `scripts/compose-rules.py` и кладёт одну копию Claude (`~/.claude/CLAUDE.md`), Codex
-  (`~/.codex/AGENTS.md`) и Antigravity (`~/.gemini/GEMINI.md`): базовые `rules/CLAUDE.global.md` + личные
+  (`~/.codex/AGENTS.md`), dsh (`~/.agents/AGENTS.md`) и Antigravity (`~/.gemini/GEMINI.md`): базовые `rules/CLAUDE.global.md` + личные
   `rules/personal/<профиль>.md` (профиль машины — `~/.config/ai-rules/profile`, задаётся ключом установщика один раз)
   + личные правила машины `~/.config/ai-rules/personal.md` (в git не едут). Уже лежавший там свой файл правил
   при первой сборке переезжает в `personal.md` — ничего не теряется. Машина без профиля получает базовые + свои.
+
+Перед публикацией правок правил запусти `python -X utf8 scripts/compose-rules.py --check-size` из корня репозитория
+(на Mac — `python3`). Проверяются база (8 КиБ) и полная копия для текущей машины (12 КиБ), включая заголовок,
+профиль и локальное дополнение. Ключ `--profile <имя>` позволяет проверить другой профиль без переключения.
+Код 1 означает превышение: вынеси подробности в скилл и повтори проверку. Обычная сборка при превышении
+пишет предупреждение и применяет правила целиком — в том числе машинные ограничения.
 
 То, что уже лежало на месте не ссылкой, переносится в `~/.claude/_backup-<дата>/`.
 

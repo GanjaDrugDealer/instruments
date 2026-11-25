@@ -6,7 +6,7 @@
      в ~/.config/ai-rules/profile (нет файла - этой части нет);
   3. личные правила этой машины - ~/.config/ai-rules/personal.md (в git не едут).
 Куда: ~/.claude/CLAUDE.md, ~/.codex/AGENTS.md, ~/.gemini/GEMINI.md (последнее - если есть ~/.gemini),
-~/.agents/AGENTS.md (оттуда её читает dsh - см. rules/CLAUDE.global.md, "Где живут общие правила").
+~/.agents/AGENTS.md (оттуда её читает dsh - см. скилл project-structure, «dsh»).
 
 Чужой файл правил (написанный руками, не этой сборкой) не теряется: при первой сборке он
 переезжает в ~/.config/ai-rules/personal.md, если того ещё нет, иначе - в резервную копию.
@@ -14,10 +14,12 @@
 
 Запускают install.ps1 / install.sh и автосинхронизация на каждом прогоне. Повторный запуск
 безопасен: файл переписывается, только если состав изменился.
+Проверить размер без записи: compose-rules.py --check-size [--profile имя].
 Задать профиль машины: compose-rules.py --profile artem   (снять: --profile -)
 """
+import argparse
+import os
 import shutil
-import sys
 import time
 from pathlib import Path
 
@@ -37,17 +39,23 @@ def say(text):
     print("  " + text)
 
 
-args = sys.argv[1:]
-if args[:1] == ["--profile"] and len(args) == 2:
+parser = argparse.ArgumentParser(description="Сборка общих правил агентов")
+parser.add_argument("--profile", help="выбрать профиль, '-' — без профиля")
+parser.add_argument("--check-size", action="store_true", help="проверить бюджет без записи файлов")
+args = parser.parse_args()
+profile = PROFILE_FILE.read_text(encoding="utf-8").strip() if PROFILE_FILE.exists() else ""
+if args.profile is not None:
+    profile = "" if args.profile == "-" else args.profile.strip()
+
+if args.profile is not None and not args.check_size:
     CONF.mkdir(parents=True, exist_ok=True)
-    if args[1] == "-":
+    if not profile:
         PROFILE_FILE.unlink(missing_ok=True)
         say("profile removed")
     else:
-        PROFILE_FILE.write_text(args[1].strip() + "\n", encoding="utf-8")
-        say(f"profile: {args[1].strip()}")
+        PROFILE_FILE.write_text(profile + "\n", encoding="utf-8")
+        say(f"profile: {profile}")
 
-profile = PROFILE_FILE.read_text(encoding="utf-8").strip() if PROFILE_FILE.exists() else ""
 parts = [MARK, BASE.read_text(encoding="utf-8").strip()]
 if profile:
     personal = REPO / "rules" / "personal" / f"{profile}.md"
@@ -63,12 +71,17 @@ if (HOME / ".gemini").is_dir():
 
 # Сначала - чужие файлы правил: первый становится личными правилами машины, остальные - в резерв.
 backup = CONF / ("backup-" + time.strftime("%Y%m%d-%H%M%S"))
+local_source = LOCAL
 for t in targets:
     if t.is_symlink() or not t.exists():
         continue
     text = t.read_text(encoding="utf-8-sig", errors="replace")
     if text.startswith(MARK) or text.lstrip().startswith(BASE_TITLE):
         continue                                   # наша сборка или старая копия базовых правил
+    if args.check_size:
+        if not local_source.exists():
+            local_source = t  # при обычной сборке этот файл станет personal.md
+        continue
     if not LOCAL.exists():
         CONF.mkdir(parents=True, exist_ok=True)
         shutil.copy2(t, LOCAL)
@@ -78,11 +91,26 @@ for t in targets:
         shutil.copy2(t, backup / f"{t.parent.name.lstrip('.')}-{t.name}")
         say(f"! own rules in {t.parent.name}/{t.name} differ from personal.md - saved to {backup.name}, merge by hand")
 
-if LOCAL.exists():
-    local = LOCAL.read_text(encoding="utf-8-sig").strip()
+if local_source.exists():
+    local = local_source.read_text(encoding="utf-8-sig").strip()
     if local:
         parts.append(local)
 content = "\n\n".join(parts) + "\n"
+
+# Размер базы на диске и размер полной копии при записи UTF-8 на этой ОС.
+base_bytes = BASE.stat().st_size
+installed_bytes = content.replace("\n", os.linesep).encode("utf-8")
+over_budget = False
+for label, size, limit_kib in (("база", base_bytes, 8), ("сборка", len(installed_bytes), 12)):
+    exceeded = size > limit_kib * 1024
+    if exceeded or args.check_size:
+        prefix = "! " if exceeded else ""
+        say(f"{prefix}{label}: {size} Б / {limit_kib} КиБ")
+    over_budget |= exceeded
+if over_budget:
+    say("! Вынеси подробности в профильный скилл и повтори --check-size.")
+if args.check_size:
+    raise SystemExit(1 if over_budget else 0)
 
 for t in targets:
     if t.is_symlink():
@@ -90,7 +118,7 @@ for t in targets:
     if t.exists() and t.read_text(encoding="utf-8-sig", errors="replace") == content:
         continue
     t.parent.mkdir(parents=True, exist_ok=True)
-    t.write_text(content, encoding="utf-8")
+    t.write_bytes(installed_bytes)
     say(f"rules -> {t.parent.name}/{t.name}")
 
 say("rules: base" + (f" + {profile}" if profile else "") + (" + personal.md" if LOCAL.exists() else ""))
