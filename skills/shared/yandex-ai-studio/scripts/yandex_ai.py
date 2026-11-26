@@ -156,7 +156,7 @@ def main(argv=None):
     parser.add_argument("--yc", help="Path to the YC CLI executable")
     parser.add_argument("--profile", help="YC CLI profile name")
     commands = parser.add_subparsers(dest="action", required=True)
-    init = commands.add_parser("init", help="Sign in to Yandex Cloud from your terminal")
+    commands.add_parser("init", help="Sign in to Yandex Cloud from your terminal")
     commands.add_parser("check", help="Check IAM token issuance without displaying the token")
     ask = commands.add_parser("ask", help="Ask DeepSeek via the subscription API")
     ask.add_argument("--folder-id", help="Subscription folder ID, defaults to the YC CLI profile")
@@ -167,10 +167,6 @@ def main(argv=None):
     yc = {"executable": args.yc, "profile": args.profile}
     try:
         if args.action == "init":
-            try:
-                os.get_terminal_size(sys.stdin.fileno())
-            except OSError:
-                init.error("run init in your own interactive terminal")
             command, env = yc_command(("init",), **yc)
             try:
                 return subprocess.run(command, env=env).returncode
