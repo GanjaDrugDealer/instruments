@@ -23,6 +23,8 @@ python -X utf8 scripts/yandex_ai.py init
 
 На Windows скрипт задаёт для портативного `yc` временную папку рядом с бинарником. Если создан локальный каталог `bin/yandex-cloud/profile`, он служит домашним каталогом процесса `yc` для всех подкоманд, а временные файлы идут в его подпапку `tmp`. Создавай этот каталог только при необходимости и ограничивай доступ к нему текущим пользователем, SYSTEM и администраторами. `bin/` исключён из Git.
 
+Если Edge сообщает о конфликте прав с запущенным экземпляром, сравни уровни целостности `yc.exe` и основного процесса Edge. На Windows файл с меткой Low понижает уровень нового процесса, даже если PowerShell работает на Medium. [Документация Microsoft о метках целостности](https://learn.microsoft.com/windows/win32/secauthz/mandatory-integrity-control)
+
 Указывай `--profile ИМЯ` перед подкомандой, если нужен конкретный профиль. Если сессия входа истекла, снова запусти `init`. Для длительной работы без повторных входов проверь условия refresh-токенов и `yc init --dpop`. [Вход пользователем](https://yandex.cloud/ru/docs/cli/operations/authentication/user) · [Refresh-токены](https://yandex.cloud/ru/docs/iam/concepts/authorization/refresh-token)
 
 ## Проверка и запрос
