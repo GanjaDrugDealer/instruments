@@ -123,9 +123,9 @@ def run_ssh(
             if identity:
                 parts += ["-i", f'"{_to_git_bash_path(identity)}"']
             parts.append(target)
-            # Pass remote command via base64 so quotes/UTF-8 never break
+            # Pass remote command via base64 + eval so quotes/UTF-8 never break and stdin passes through
             b64_cmd = base64.b64encode(remote_cmd.encode("utf-8")).decode("ascii")
-            parts.append(f'"echo {b64_cmd} | base64 -d | bash -s"')
+            parts.append(f"'eval \"$(echo {b64_cmd} | base64 -d)\"'")
             bash_line = " ".join(parts)
             return subprocess.run(
                 [git_bash, "-c", bash_line],
