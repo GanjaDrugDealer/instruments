@@ -8,6 +8,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from urllib.error import HTTPError, URLError
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
@@ -84,6 +85,50 @@ def yc_read(args, *, executable=None, profile=None):
     return result.stdout.strip()
 
 
+def windows_login_url(pid):
+    netstat = Path(os.environ["SystemRoot"]) / "System32" / "netstat.exe"
+    connections = subprocess.run(
+        [str(netstat), "-ano", "-p", "tcp"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        check=True,
+        timeout=5,
+    ).stdout
+    listener = (
+        rb"^[ \t]*TCP[ \t]+127\.0\.0\.1:(\d+)[ \t]+0\.0\.0\.0:0[ \t]+\S+[ \t]+"
+        + str(pid).encode("ascii")
+        + rb"[ \t\r]*$"
+    )
+    ports = re.findall(listener, connections, re.MULTILINE)
+    if len(ports) == 1:
+        return f"http://127.0.0.1:{int(ports[0])}/"
+    return None
+
+
+def yc_init(*, executable=None, profile=None, manual_browser=False):
+    if manual_browser and os.name != "nt":
+        raise YandexAIError("Ручное открытие браузера через этот скрипт доступно на Windows.")
+    options = ("init", "--no-browser") if manual_browser else ("init",)
+    command, env = yc_command(options, executable=executable, profile=profile)
+    try:
+        if not manual_browser:
+            return subprocess.run(command, env=env).returncode
+        with subprocess.Popen(command, env=env) as login:
+            try:
+                while login.poll() is None:
+                    url = windows_login_url(login.pid)
+                    if url:
+                        print(f"\nОткрой {url} в браузере на этом ПК.", flush=True)
+                        break
+                    time.sleep(0.5)
+                return login.wait()
+            finally:
+                if login.poll() is None:
+                    login.terminate()
+    except (OSError, subprocess.SubprocessError):
+        raise YandexAIError("Не удалось запустить YC CLI или найти его порт входа.") from None
+
+
 def get_iam_token(*, executable=None, profile=None):
     """Obtain a usable token from YC CLI without printing or writing it."""
     token = yc_read(("iam", "create-token"), executable=executable, profile=profile)
@@ -156,7 +201,8 @@ def main(argv=None):
     parser.add_argument("--yc", help="Path to the YC CLI executable")
     parser.add_argument("--profile", help="YC CLI profile name")
     commands = parser.add_subparsers(dest="action", required=True)
-    commands.add_parser("init", help="Sign in to Yandex Cloud from your terminal")
+    init = commands.add_parser("init", help="Sign in to Yandex Cloud from your terminal")
+    init.add_argument("--manual-browser", action="store_true", help="Print a local login URL on Windows")
     commands.add_parser("check", help="Check IAM token issuance without displaying the token")
     ask = commands.add_parser("ask", help="Ask DeepSeek via the subscription API")
     ask.add_argument("--folder-id", help="Subscription folder ID, defaults to the YC CLI profile")
@@ -167,11 +213,7 @@ def main(argv=None):
     yc = {"executable": args.yc, "profile": args.profile}
     try:
         if args.action == "init":
-            command, env = yc_command(("init",), **yc)
-            try:
-                return subprocess.run(command, env=env).returncode
-            except OSError:
-                raise YandexAIError("Не удалось запустить YC CLI.") from None
+            return yc_init(manual_browser=args.manual_browser, **yc)
         elif args.action == "check":
             get_iam_token(**yc)
             print("IAM token OK")

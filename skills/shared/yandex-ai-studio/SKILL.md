@@ -19,6 +19,8 @@ description: Получает и обновляет IAM-токен Yandex Cloud 
 python -X utf8 scripts/yandex_ai.py init
 ```
 
+Если на Windows журнал входа содержит `failed to open browser`, запусти `init --manual-browser`. После Enter скрипт выведет адрес `127.0.0.1` для текущего процесса `yc`. Открой его в браузере на этом же ПК и заверши вход, пока команда работает. [Флаг YC CLI](https://yandex.cloud/ru/docs/cli/cli-ref/init)
+
 На Windows скрипт задаёт для портативного `yc` временную папку рядом с бинарником. Если создан локальный каталог `bin/yandex-cloud/profile`, он служит домашним каталогом процесса `yc` для всех подкоманд, а временные файлы идут в его подпапку `tmp`. Создавай этот каталог только при необходимости и ограничивай доступ к нему текущим пользователем, SYSTEM и администраторами. `bin/` исключён из Git.
 
 Указывай `--profile ИМЯ` перед подкомандой, если нужен конкретный профиль. Если сессия входа истекла, снова запусти `init`. Для длительной работы без повторных входов проверь условия refresh-токенов и `yc init --dpop`. [Вход пользователем](https://yandex.cloud/ru/docs/cli/operations/authentication/user) · [Refresh-токены](https://yandex.cloud/ru/docs/iam/concepts/authorization/refresh-token)
