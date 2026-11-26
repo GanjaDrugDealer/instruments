@@ -31,7 +31,12 @@ def find_yc(executable=None):
         resolved = shutil.which(os.path.expanduser(os.fspath(executable)))
     else:
         name = "yc.exe" if os.name == "nt" else "yc"
-        resolved = shutil.which(name) or shutil.which(str(PORTABLE_DIR / name))
+        resolved = shutil.which(name)
+        user_profile = os.environ.get("USERPROFILE")
+        if not resolved and os.name == "nt" and user_profile:
+            installed = Path(user_profile) / "yandex-cloud" / "bin" / name
+            resolved = shutil.which(str(installed))
+        resolved = resolved or shutil.which(str(PORTABLE_DIR / name))
     if not resolved:
         raise YandexAIError("Не найден yc. Укажи путь к CLI через --yc.")
     return str(Path(resolved).resolve())
