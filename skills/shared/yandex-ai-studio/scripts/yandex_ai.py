@@ -14,6 +14,7 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 RESPONSES_URL = "https://apps.ai.api.cloud.yandex.net/v1/responses"
 MODEL = "deepseek-v4.1-flash"
+PORTABLE_DIR = (Path(__file__).resolve().parent / "../../../../bin/yandex-cloud").resolve()
 
 
 class YandexAIError(RuntimeError):
@@ -30,21 +31,38 @@ def find_yc(executable=None):
         resolved = shutil.which(os.path.expanduser(os.fspath(executable)))
     else:
         name = "yc.exe" if os.name == "nt" else "yc"
-        library_dir = Path(__file__).resolve().parent / "../../../.."
-        portable = library_dir / "bin" / "yandex-cloud" / name
-        resolved = shutil.which(name) or shutil.which(str(portable))
+        resolved = shutil.which(name) or shutil.which(str(PORTABLE_DIR / name))
     if not resolved:
         raise YandexAIError("Не найден yc. Укажи путь к CLI через --yc.")
     return str(Path(resolved).resolve())
 
 
-def yc_read(args, *, executable=None, profile=None):
-    command = [find_yc(executable), *args, "--no-browser"]
+def yc_command(args, *, executable=None, profile=None):
+    binary = Path(find_yc(executable))
+    command = [str(binary), *args]
     if profile:
         command.extend(["--profile", profile])
+    env = None
+    if os.name == "nt" and binary.parent == PORTABLE_DIR:
+        private_profile = PORTABLE_DIR / "profile"
+        use_private_profile = private_profile.is_dir()
+        temp = (private_profile if use_private_profile else PORTABLE_DIR) / "tmp"
+        try:
+            temp.mkdir(exist_ok=True)
+        except OSError:
+            raise YandexAIError("Не удалось создать временную папку рядом с портативным yc.") from None
+        env = dict(os.environ, TEMP=str(temp), TMP=str(temp))
+        if use_private_profile:
+            env["USERPROFILE"] = str(private_profile)
+    return command, env
+
+
+def yc_read(args, *, executable=None, profile=None):
+    command, env = yc_command((*args, "--no-browser"), executable=executable, profile=profile)
     try:
         result = subprocess.run(
             command,
+            env=env,
             stdin=subprocess.DEVNULL,
             capture_output=True,
             text=True,
@@ -61,7 +79,7 @@ def yc_read(args, *, executable=None, profile=None):
             raise YandexAIError("YC CLI не может записать журналы в текущий временный каталог.")
         raise YandexAIError(
             "YC CLI вернул ошибку. Проверь профиль через yc config profile list "
-            "и при необходимости выполни yc init в своём терминале."
+            "и при необходимости запусти подкоманду init этого скрипта в своём терминале."
         )
     return result.stdout.strip()
 
@@ -138,6 +156,7 @@ def main(argv=None):
     parser.add_argument("--yc", help="Path to the YC CLI executable")
     parser.add_argument("--profile", help="YC CLI profile name")
     commands = parser.add_subparsers(dest="action", required=True)
+    init = commands.add_parser("init", help="Sign in to Yandex Cloud from your terminal")
     commands.add_parser("check", help="Check IAM token issuance without displaying the token")
     ask = commands.add_parser("ask", help="Ask DeepSeek via the subscription API")
     ask.add_argument("--folder-id", help="Subscription folder ID, defaults to the YC CLI profile")
@@ -147,7 +166,17 @@ def main(argv=None):
     args = parser.parse_args(argv)
     yc = {"executable": args.yc, "profile": args.profile}
     try:
-        if args.action == "check":
+        if args.action == "init":
+            try:
+                os.get_terminal_size(sys.stdin.fileno())
+            except OSError:
+                init.error("run init in your own interactive terminal")
+            command, env = yc_command(("init",), **yc)
+            try:
+                return subprocess.run(command, env=env).returncode
+            except OSError:
+                raise YandexAIError("Не удалось запустить YC CLI.") from None
+        elif args.action == "check":
             get_iam_token(**yc)
             print("IAM token OK")
         elif args.action == "ask":
